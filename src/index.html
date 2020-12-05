@@ -1,0 +1,123 @@
+
+<!doctype html>
+<html lang="en" ng-app="dynastyDashboard">
+	<head>
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-80336019-3"></script>
+		<script>
+		  window.dataLayer = window.dataLayer || [];
+		  function gtag(){dataLayer.push(arguments);}
+		  gtag('js', new Date());
+
+		  gtag('config', 'UA-80336019-3');
+		</script>
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>Dynasty Dashboard</title>
+		<link rel="icon" type="image/png" href="/img/Logo-Helmet-Square.png" />
+		
+		<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+  		<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
+		<link rel="stylesheet" type="text/css" href="lib/bootstrap-material-design.min.css">
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7-rc.0/css/select2.min.css" rel="stylesheet">
+  		<link rel="stylesheet" type="text/css" href="lib/ripples.min.css">
+		<!-- Application specific CSS -->
+		<link rel="stylesheet" href="css/app.css">		
+		<link rel="stylesheet" href="css/spinner.css">		
+		<link rel="stylesheet" href="css/select2-material.css">		
+	</head>
+	<body ng-controller="ParentController" ng-init="init()">	
+		
+		<!-- Google Tag Manager (noscript) -->
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NCLSSFJ"
+		height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		<!-- End Google Tag Manager (noscript) -->
+
+		<nav class="navbar navbar-default">
+		  <div class="container">
+		    <!-- Brand and toggle get grouped for better mobile display -->
+		    <div class="navbar-header">
+				<a class="navbar-brand" href="#/">
+					LOGO
+				</a>
+		    </div>
+
+		    <p class="navbar-text font-larger"><b>{{pageTitle}}</b></p>
+		    
+			<ul class="link nav navbar-nav navbar-right">
+				<li>
+					Right Nav
+				</li>
+				<li>
+					<a href="#" ng-hide="user" ng-click="login($event)">
+						<i class="fas fa-user"></i> Login
+					</a>
+					<a href="#/user/{{user.uid}}" ng-show="user">
+						<i class="fas fa-user"></i> {{user.displayName}}
+					</a>
+				</li>
+				<li>
+					<a href="#" ng-show="user" ng-click="logout($event)">
+						<i class="fas fa-sign-out-alt"></i>	Logout
+					</a>
+				</li>
+			</ul>
+		  </div>
+		</nav>
+
+		<div class="container main">
+			<div ng-view autoscroll="true"></div>
+		</div>
+
+		<!-- Footer -->
+		<footer class="page-footer font-small blue pt-4 padding-top-5">
+
+		    <!-- Copyright -->
+		    <div class="footer-copyright text-center py-3">
+		    	© TODO
+		    </div>
+		    <!-- Copyright -->
+
+		  </footer>
+		  <!-- Footer -->
+
+		<script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase-app.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase-auth.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase-database.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase-storage.js"></script>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.7/angular.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.7/angular-route.min.js"></script>
+		
+		<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+		
+		<script src="lib/material.min.js"></script>
+		<script src="lib/ripples.min.js"></script>
+		<script src="lib/papaparse.min.js"></script>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7-rc.0/js/select2.min.js"></script>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/8.5.1/nouislider.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment-with-locales.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.5/moment-timezone-with-data.min.js"></script>
+
+		<!-- build:js app.min.js -->
+		<script src="js/app.js"></script>
+		<script src="js/router.js"></script>
+		<script src="js/dashboard.js"></script>
+		<!-- /build -->
+	</body>
+</html>
+
