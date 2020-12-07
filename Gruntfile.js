@@ -2,14 +2,14 @@ module.exports = function(grunt) {
 
   // Project configuration.
   grunt.initConfig({
-    pkg: grunt.file.readJSON('app/package.json'),
+    pkg: grunt.file.readJSON('package.json'),
     uglify: {
       options: {
         mangle: false
       },
       build: {
         files: {
-          'build/app.min.js': ['app/src/js/**/*.js']
+          'app.min.js': ['src/js/**/*.js']
         }
       }
     },
@@ -17,17 +17,18 @@ module.exports = function(grunt) {
       options: {},
       dist: {
         files: {
-          'build/index.html': ['app/src/index.html']
+          'index.html': ['src/index.html']
         }
       }
     },
     copy: {
       main: {
         files: [
-          {expand: true, cwd: 'app/src/css', src: '**', dest: 'build/css/'},
-          {expand: true, cwd: 'app/src/img', src: '**', dest: 'build/img/'},
-          {expand: true, cwd: 'app/src/pages', src: '**', dest: 'build/pages/'},
-          {expand: true, cwd: 'app/src/lib', src: '**', dest: 'build/lib/'}
+          {expand: true, cwd: 'src/css', src: '**', dest: 'build/css/'},
+          {expand: true, cwd: 'src/img', src: '**', dest: 'build/img/'},
+          {expand: true, cwd: 'src/pages', src: '**', dest: 'build/pages/'},
+          {expand: true, cwd: 'src/lib', src: '**', dest: 'build/lib/'},
+          {expand: true, cwd: 'functions', src: '**', dest: 'build/functions/'}
         ],
       },
     },
