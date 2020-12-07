@@ -6,35 +6,14 @@ exports.handler = async function(event, context, callback) {
 
     if(body.mflUsername && body.mflPassword){
       console.log("Logging In", body.mflUsername);
-      var options = {
-        hostname: "api.myfantasyleague.com",
-        path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
-        method: "POST"
-      };
+      mflLogin(body).then(function(data){
+        console.log('here');
+        console.log(data);
+      }).catch(function(error){
+        console.log('here2');
+        console.log(error);
+      });
 
-      const req = await https.request(options, response => {
-        console.log("response", response);
-        console.log("headers", res.headers);
-
-        res.on("data", data => {
-          console.log("data", data);
-          return {
-            statusCode: 200,
-            body: JSON.stringify(data),
-          };
-        })
-      })
-
-      req.on("error", error => {
-        console.error(error);
-
-        return {
-          statusCode: 500,
-          body: JSON.stringify(error),
-        };
-      })
-
-      req.end()
     }else{
       return {
         statusCode: 400,
@@ -51,4 +30,35 @@ exports.handler = async function(event, context, callback) {
       }),
     };
   }
+}
+
+mflLogin = function(body){
+  console.log('here3')
+  return new Promise((resolve, reject) => {
+      console.log('here4')
+        var options = {
+          hostname: "api.myfantasyleague.com",
+          path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
+          method: "POST"
+        };
+
+        const req = await https.request(options, response => {
+          console.log("response", response);
+          console.log("headers", res.headers);
+
+          res.on("data", data => {
+            console.log("data", data);
+            resolve(data);
+          })
+        });
+
+        req.on("error", error => {
+          console.error(error);
+          reject(error);
+        });
+
+        req.write({});
+
+        req.end()
+    });
 }
