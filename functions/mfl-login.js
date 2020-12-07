@@ -52,9 +52,9 @@ mflLogin = function(body){
 
         const req = https.request(options, response => {
           console.log("response", response);
-          console.log("headers", res.headers);
+          console.log("headers", response.headers);
 
-          res.on("data", data => {
+          response.on("data", data => {
             console.log("data", data);
             resolve(data);
           })
@@ -65,7 +65,7 @@ mflLogin = function(body){
           reject(error);
         });
 
-        req.write();
+        req.write("");
 
         req.end()
     });
