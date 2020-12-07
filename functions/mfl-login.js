@@ -65,7 +65,7 @@ mflLogin = function(body){
           reject(error);
         });
 
-        req.write("{}");
+        req.write();
 
         req.end()
     });
