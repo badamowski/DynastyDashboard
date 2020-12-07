@@ -1,3 +1,15 @@
 <div ng-init="init()">
-	<h3>DASHBOARD</h3>
+	<div ng-show="user.uid.mfl">
+	</div>
+	<div ng-hide="user.uid.mfl">
+		<div class="form-group">
+			<label class="control-label" for="mflUsername">MFL Username</label>
+			<input class="form-control" id="mflUsername" type="text">
+		</div>
+		<div class="form-group">
+			<label class="control-label" for="mflPassword">MFL Password</label>
+			<input class="form-control" id="mflPassword" type="password">
+		</div>
+		<button class="btn btn-success" ng-click="mflLogin()">Link MFL Account</button>
+	</div>
 </div>
