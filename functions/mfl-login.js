@@ -38,36 +38,40 @@ exports.handler = async function(event, context, callback) {
       }),
     };
   }
+  console.log('here8');
 }
 
 mflLogin = function(body){
   console.log('here3')
   return new Promise((resolve, reject) => {
       console.log('here4')
-        var options = {
-          hostname: "api.myfantasyleague.com",
-          path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
-          method: "POST",
-          port: 443,
-        };
+      var options = {
+        hostname: "api.myfantasyleague.com",
+        path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
+        method: "POST",
+        port: 443,
+      };
 
-        const req = https.request(options, response => {
-          console.log("response", response);
-          console.log("headers", response.headers);
+      const req = https.request(options, response => {
+        console.log("response", response);
+        console.log("headers", response.headers);
 
-          response.on("data", data => {
-            console.log("data", data);
-            resolve(data);
-          })
-        });
+        response.on("data", data => {
+          console.log("data", data);
+          resolve(data);
+        })
+      });
 
-        req.on("error", error => {
-          console.error(error);
-          reject(error);
-        });
+      req.on("error", error => {
+        console.error(error);
+        reject(error);
+      });
 
-        req.write("");
+      console.log('here5');
+      req.write("");
 
-        req.end()
+      console.log('here6');
+      req.end()
+      console.log('here7');
     });
 }
