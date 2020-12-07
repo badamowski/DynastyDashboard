@@ -47,7 +47,8 @@ mflLogin = function(body){
         var options = {
           hostname: "api.myfantasyleague.com",
           path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
-          method: "POST"
+          method: "POST",
+          port: 443,
         };
 
         const req = https.request(options, response => {
