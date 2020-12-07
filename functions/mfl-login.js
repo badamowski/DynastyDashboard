@@ -42,7 +42,7 @@ mflLogin = function(body){
           method: "POST"
         };
 
-        const req = await https.request(options, response => {
+        const req = https.request(options, response => {
           console.log("response", response);
           console.log("headers", res.headers);
 
