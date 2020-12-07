@@ -9,9 +9,17 @@ exports.handler = async function(event, context, callback) {
       mflLogin(body).then(function(data){
         console.log('here');
         console.log(data);
+        return {
+          statusCode: 200,
+          body: JSON.stringify(data)
+        };
       }).catch(function(error){
         console.log('here2');
         console.log(error);
+        return {
+          statusCode: 500,
+          body: JSON.stringify(error)
+        };
       });
 
     }else{
@@ -57,7 +65,7 @@ mflLogin = function(body){
           reject(error);
         });
 
-        req.write({});
+        req.write("{}");
 
         req.end()
     });
