@@ -9,7 +9,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'app.min.js': ['src/js/**/*.js']
+          'build/app.min.js': ['src/js/**/*.js']
         }
       }
     },
@@ -17,7 +17,7 @@ module.exports = function(grunt) {
       options: {},
       dist: {
         files: {
-          'index.html': ['src/index.html']
+          'build/index.html': ['src/index.html']
         }
       }
     },
