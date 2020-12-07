@@ -12,7 +12,7 @@ exports.handler = async function(event, context, callback) {
         method: "POST"
       };
 
-      const req = https.request(options, response => {
+      const req = await https.request(options, response => {
         console.log("response", response);
         console.log("headers", res.headers);
 
