@@ -16,26 +16,22 @@ exports.handler = function(event, context, callback) {
       };
 
       const req = https.request(options, response => {
-        console.log("response", response);
-        console.log("headers", response.headers);
+        console.log("response", JSON.stringify(response));
+        console.log("headers", JSON.stringify(response.headers));
 
         response.on("data", data => {
-          console.log("data", data);
+          console.log("data", JSON.stringify(data));
           callback(data, 200);
         })
       });
 
       req.on("error", error => {
-        console.error(error);
+        console.log(JSON.stringify(error));
         callback(error, 500);
       });
 
-      console.log('here5');
       req.write("");
-
-      console.log('here6');
       req.end()
-      console.log('here7');
 
     }else{
       return {
