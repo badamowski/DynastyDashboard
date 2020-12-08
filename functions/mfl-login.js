@@ -45,8 +45,8 @@ exports.handler = function(event, context, callback) {
         statusCode: 400,
         body: JSON.stringify({
           error: "invalid request"
-        },
-        headers: headers),
+        }),
+        headers: headers,
       };
     }
   }else{
@@ -54,8 +54,8 @@ exports.handler = function(event, context, callback) {
       statusCode: 400,
       body: JSON.stringify({
         error: "invalid request"
-      },
-      headers: headers),
+      }),
+      headers: headers
     };
   }
 }
