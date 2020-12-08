@@ -1,5 +1,11 @@
 const https = require('https')
 
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
+};
+
 exports.handler = function(event, context, callback) {
   if(event.path == "/.netlify/functions/mfl-login" && event.httpMethod == "POST"){
     var body = JSON.parse(event.body);
@@ -21,7 +27,8 @@ exports.handler = function(event, context, callback) {
         response.on("data", data => {
           callback(null, {
             statusCode: 200,
-            body: JSON.stringify(response.headers["set-cookie"])
+            body: JSON.stringify(response.headers["set-cookie"]),
+            headers: headers
           });
         })
       });
@@ -38,7 +45,8 @@ exports.handler = function(event, context, callback) {
         statusCode: 400,
         body: JSON.stringify({
           error: "invalid request"
-        }),
+        },
+        headers: headers),
       };
     }
   }else{
@@ -46,7 +54,8 @@ exports.handler = function(event, context, callback) {
       statusCode: 400,
       body: JSON.stringify({
         error: "invalid request"
-      }),
+      },
+      headers: headers),
     };
   }
 }
