@@ -15,10 +15,13 @@ exports.handler = function(event, context, callback) {
       };
 
       const req = https.request(options, response => {
+        console.log(JSON.stringify(response.headers));
+        console.log(JSON.stringify(response.headers["set-cookie"]));
+        console.log(response.headers["set-cookie"]);
         response.on("data", data => {
           callback(null, {
             statusCode: 200,
-            body: response.headers["set-cookie"]
+            body: JSON.stringify(response.headers["set-cookie"])
           });
         })
       });
