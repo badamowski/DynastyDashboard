@@ -16,7 +16,6 @@ exports.handler = function(event, context, callback) {
       };
 
       const req = https.request(options, response => {
-        console.log("response", JSON.stringify(response));
         console.log("headers", JSON.stringify(response.headers));
 
         response.on("data", data => {
