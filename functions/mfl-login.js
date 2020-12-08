@@ -7,7 +7,6 @@ exports.handler = function(event, context, callback) {
     if(body.mflUsername && body.mflPassword){
       console.log("Logging In", body.mflUsername);
 
-      console.log('here4')
       var options = {
         hostname: "api.myfantasyleague.com",
         path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
@@ -17,10 +16,9 @@ exports.handler = function(event, context, callback) {
 
       const req = https.request(options, response => {
         response.on("data", data => {
-          data.setCookies = response.headers["set-cookie"];
           callback(null, {
             statusCode: 200,
-            body: JSON.stringify(data)
+            body: response.headers["set-cookie"]
           });
         })
       });
@@ -48,5 +46,4 @@ exports.handler = function(event, context, callback) {
       }),
     };
   }
-  console.log('here8');
 }
