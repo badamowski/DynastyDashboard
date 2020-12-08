@@ -20,7 +20,7 @@ exports.handler = function(event, context, callback) {
           data.setCookies = response.headers["set-cookie"];
           callback(null, {
             statusCode: 200,
-            body: data
+            body: JSON.stringify(data)
           });
         })
       });
