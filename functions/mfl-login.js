@@ -16,17 +16,17 @@ exports.handler = function(event, context, callback) {
       };
 
       const req = https.request(options, response => {
-        console.log("headers", JSON.stringify(response.headers));
-
         response.on("data", data => {
-          console.log("data", JSON.stringify(data));
-          callback(data, 200);
+          data.setCookies = response.headers["set-cookie"];
+          callback(null, {
+            statusCode: 200,
+            body: data
+          });
         })
       });
 
       req.on("error", error => {
-        console.log(JSON.stringify(error));
-        callback(error, 500);
+        callback(Error(error));
       });
 
       req.write("");
