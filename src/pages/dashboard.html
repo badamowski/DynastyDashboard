@@ -1,7 +1,8 @@
 <div ng-init="init()">
-	<div ng-show="user.uid.mfl">
+	<div ng-hide="user">
+		Need to login!
 	</div>
-	<div ng-hide="user.uid.mfl">
+	<div ng-hide="validMflCookies()">
 		<div class="form-group">
 			<label class="control-label" for="mflUsername">MFL Username</label>
 			<input class="form-control" id="mflUsername" type="text">
@@ -11,5 +12,16 @@
 			<input class="form-control" id="mflPassword" type="password">
 		</div>
 		<button class="btn btn-success" ng-click="mflLogin()">Link MFL Account</button>
+	</div>
+	<div ng-show="validMflCookies()">
+		<div ng-show="league">
+			{{league.name}} WOOHOO!
+		</div>
+		<div ng-hide="league">
+			Select a league: 
+			<div ng-repeat="(leaguekey, mflLeague) in mflLeagues.leagues">
+				{{leaguekey}} - {{mflLeague.name}} - {{mflLeague.league_id}} - {{mflLeague.franchise_id}}
+			</div>
+		</div>
 	</div>
 </div>

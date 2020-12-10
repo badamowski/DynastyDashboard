@@ -1,27 +1,30 @@
 const https = require('https')
 
 exports.handler = function(event, context, callback) {
-  if(event.path == "/.netlify/functions/mfl-login" && event.httpMethod == "POST"){
+  if(event.path == "/.netlify/functions/mfl-export" && event.httpMethod == "POST"){
     var body = JSON.parse(event.body);
 
-    if(body.mflUsername && body.mflPassword){
-      console.log("Logging In", body.mflUsername);
+    if(body.mflCookies && event.queryStringParameters.TYPE){
+      console.log("Export call", event.queryStringParameters);
+
+      var leagueQueryParam = "";
+      if(event.queryStringParameters.L){
+        leagueQueryParam = `&L=${event.queryStringParameters.L}`
+      }
 
       var options = {
         hostname: "api.myfantasyleague.com",
-        path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
-        method: "POST",
+        path: `/2020/export?TYPE=${event.queryStringParameters.TYPE}${leagueQueryParam}&JSON=1`,
+        method: "GET",
         port: 443,
+        headers: {"Cookie": body.mflCookies}
       };
 
       const req = https.request(options, response => {
-        console.log(JSON.stringify(response.headers));
-        console.log(JSON.stringify(response.headers["set-cookie"]));
-        console.log(response.headers["set-cookie"]);
         response.on("data", data => {
           callback(null, {
             statusCode: 200,
-            body: JSON.stringify(response.headers["set-cookie"])
+            body: data.toString("utf-8")
           });
         })
       });

@@ -20,6 +20,7 @@ var config = {
         loginReload: function() {
         	if(!$rootScope.user){
 		        this.loginPromise().then(function(){
+		        	applyRootScope();
 		        	$route.reload();
 		        });
 			}else{
@@ -98,6 +99,101 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		$("#" + modal).modal(true);
 	};
 
+	mflExport = function(type, league, mflCookies, saveTo){
+		return new Promise(function(resolve, reject){
+			var leageQueryParam = "";
+			if(league){
+				leageQueryParam = "&L=" + league;
+			}
+			$.ajax({
+				url: "/.netlify/functions/mfl-export?TYPE=" + type + leageQueryParam,
+				type: "POST",
+				data: JSON.stringify({
+					mflCookies: mflCookies
+				}),
+				contentType:"application/json",
+				dataType:"json",
+				success: function(data){
+					$scope[saveTo] = data;
+					resolve();
+				}
+			});
+		});
+	};
+
+	validMflLogin = function(){
+		return new Promise(function(resolve, reject){
+			if($rootScope.user){
+				if(!$rootScope.mflCookies){
+					retrieveMflCookies($rootScope.user.uid).then(function(){
+						if(!validMflCookies($rootScope.mflCookies)){
+							$rootScope.mflCookies = null;
+						}
+						resolve();
+					});
+				}else {
+					if(!validMflCookies($rootScope.mflCookies)){
+						$rootScope.mflCookies = null;
+					}
+					resolve();
+				}
+			}else{
+				resolve();
+			}
+		});
+	};
+
+	$rootScope.validMflCookies = function(){
+		if($rootScope.mflCookies){
+			var expiration = $rootScope.mflCookies[1].substring($rootScope.mflCookies[1].indexOf("expires=") + 8);
+			return moment(expiration).isAfter(moment());
+		}else{
+			return false;
+		}
+	};
+
+	retrieveMflCookies = function(uid){
+		return new Promise(function(resolve, reject){
+			if($rootScope.mflCookies){
+				resolve();
+			}
+			dynastyDashboardDatabase.ref("mflCookies/" + uid).once("value", function(data){
+				$rootScope.mflCookies = data.val();
+				resolve();
+			});
+		});
+	};
+
+	retrieveMfl = function(uid){
+		return new Promise(function(resolve, reject){
+			dynastyDashboardDatabase.ref("mfl/" + uid).once("value", function(data){
+				$rootScope.mfl = data.val();
+				resolve();
+			});
+		});
+	};
+
+	doMflLogin = function(mflUsername, mflPassword){
+		return new Promise(function(resolve, reject){
+			$.ajax({
+				url: "/.netlify/functions/mfl-login",
+				type: "POST",
+				data: JSON.stringify({
+					mflUsername: mflUsername,
+					mflPassword: mflPassword
+				}),
+				contentType:"application/json",
+				dataType:"json",
+				success: function(data){
+					$rootScope.mflCookies = data;
+					updateMflCookies($rootScope.user.uid, $rootScope.mflCookies).then(function(){
+						resolve();
+					});
+				}
+			});
+		});
+	};
+
 	userInit = function(){
 		return new Promise(function(resolve, reject) {
 			firebase.auth().onAuthStateChanged(function(var1, var2){
@@ -134,6 +230,21 @@ app.controller('HomeController', function($scope, $rootScope, $timeout) {
 	};
 });
 
+updateMflCookies = function(uid, mflCookies){
+	return new Promise(function(resolve, reject){
+		dynastyDashboardDatabase.ref("mflCookies/" + uid).update(mflCookies).then(function(){
+			resolve();
+		});
+	});
+};
+
+updateMfl = function(uid, mfl){
+	return new Promise(function(resolve, reject){
+		dynastyDashboardDatabase.ref("mflCookies/" + uid).update(mfl).then(function(){
+			resolve();
+		});
+	});
+};
 
 updateUserInfo = function(user){
 	return new Promise(function(resolve, reject){

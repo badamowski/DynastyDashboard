@@ -16,7 +16,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title>Dynasty Dashboard</title>
-		<link rel="icon" type="image/png" href="/img/Logo-Helmet-Square.png" />
+		<!-- <link rel="icon" type="image/png" href="/img/Logo-Helmet-Square.png" /> -->
 		
 		<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
   		<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -59,7 +59,7 @@
 					<a href="#" ng-hide="user" ng-click="login($event)">
 						<i class="fas fa-user"></i> Login
 					</a>
-					<a href="#/user/{{user.uid}}" ng-show="user">
+					<a href="#/dashboard" ng-show="user">
 						<i class="fas fa-user"></i> {{user.displayName}}
 					</a>
 				</li>
@@ -79,15 +79,17 @@
 		<!-- Footer -->
 		<footer class="page-footer font-small blue pt-4 padding-top-5">
 
-		    <!-- Copyright -->
-		    <div class="footer-copyright text-center py-3">
-		    	© TODO
-		    </div>
-		    <!-- Copyright -->
+			<!-- Copyright -->
+			<div class="footer-copyright text-center py-3">
+				© TODO
+			</div>
+			<!-- Copyright -->
 
-		  </footer>
-		  <!-- Footer -->
+		</footer>
+		<!-- Footer -->
 
+		<div id="cover-spin"></div>
+		
 		<script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase-app.js"></script>

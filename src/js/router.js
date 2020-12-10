@@ -6,7 +6,7 @@ app.config(function($routeProvider) {
     controller  : 'HomeController'
   })
 
-  .when('/user/:uid', {
+  .when('/dashboard', {
     templateUrl : 'pages/dashboard.html',
     controller  : 'DashboardController'
   })
