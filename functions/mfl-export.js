@@ -9,12 +9,14 @@ exports.handler = function(event, context, callback) {
 
       var leagueQueryParam = "";
       if(event.queryStringParameters.L){
-        leagueQueryParam = `&L=${event.queryStringParameters.L}`
+        leagueQueryParam = "&L=" + event.queryStringParameters.L;
       }
+
+      var path = `/2020/export?TYPE=${event.queryStringParameters.TYPE}${leagueQueryParam}&JSON=1`;
 
       var options = {
         hostname: "api.myfantasyleague.com",
-        path: `/2020/export?TYPE=${event.queryStringParameters.TYPE}${leagueQueryParam}&JSON=1`,
+        path: path,
         method: "GET",
         port: 443,
         headers: {"Cookie": body.mflCookies}

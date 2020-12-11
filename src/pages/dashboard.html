@@ -15,7 +15,13 @@
 	</div>
 	<div ng-show="validMflCookies()">
 		<div ng-show="league">
-			{{league.name}} WOOHOO!
+			{{league.name}}
+			<div ng-repeat="draftPick in assets.futureYearDraftPicks.draftPick">
+				{{draftPick.description}}
+			</div>
+			<div ng-repeat="player in assets.players.player">
+				{{player.id}}
+			</div>
 		</div>
 		<div ng-hide="league">
 			Select a league: 

@@ -22,8 +22,29 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		});
 	};
 
+	$scope.loadPlayer = function(playerId){
+		/*if($rootScope.players[playerId]){
+			return $rootScope.players[playerId];
+		}else{
+			mflExport
+		}*/
+	};
+
 	$scope.loadLeague = function(league){
 		$scope.league = league;
+		mflExport("assets", $scope.league.league_id, "leagueAssets").then(function(){
+			$.each($scope.leagueAssets.assets.franchise, function(franchise){
+				if(franchise.id == $scope.league.franchise_id){
+					$scope.assets = franchise;
+				}
+			});
+
+			/*var listOfPlayers = "";
+			$.each($scope.assets.players.player, function(player){
+				listOfPlayers += player.id + ","
+			});
+			mflExport("players", 24385)*/
+		});
 	};
 
 	$scope.mflLogin = function(){
