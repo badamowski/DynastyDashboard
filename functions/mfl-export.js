@@ -42,10 +42,13 @@ exports.handler = function(event, context, callback) {
       });
 
       req.on("error", error => {
-        callback(Error(error));
+      	console.log(error);
+        callback(null, {
+        	statusCode: 500,
+        	body: error
+        });
       });
 
-      req.write("");
       req.end()
 
     }else{
