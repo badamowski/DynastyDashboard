@@ -7,12 +7,13 @@ exports.handler = function(event, context, callback) {
     if(body.mflCookies && event.queryStringParameters.TYPE){
       console.log("Export call", event.queryStringParameters);
 
-      var leagueQueryParam = "";
-      if(event.queryStringParameters.L){
-        leagueQueryParam = "&L=" + event.queryStringParameters.L;
-      }
+      var leagueQueryParams = "";
+      Object.keys(event.queryStringParameters).forEach(function(key,index) {
+	    leagueQueryParams += key + "=" + event.queryStringParameters[key] + "&";
+	  });
+	  leagueQueryParams += "JSON=1";
 
-      var path = `/2020/export?TYPE=${event.queryStringParameters.TYPE}${leagueQueryParam}&JSON=1`;
+      var path = `/2020/export?${leagueQueryParams}`;
 
       var options = {
         hostname: "api.myfantasyleague.com",
@@ -24,9 +25,18 @@ exports.handler = function(event, context, callback) {
 
       const req = https.request(options, response => {
         response.on("data", data => {
+        	console.log("HERE");
+        	console.log(data);
+        	var returnValue;
+        	if(Buffer.isBuffer(data)){
+        		returnValue = data.toString("utf-8");
+        	}else{
+        		returnValue = JSON.stringify(data);
+        	}
+        	console.log(returnValue);
           callback(null, {
             statusCode: 200,
-            body: data.toString("utf-8")
+            body: returnValue
           });
         })
       });
