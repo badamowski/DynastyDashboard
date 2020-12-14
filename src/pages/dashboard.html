@@ -16,11 +16,13 @@
 	<div ng-show="validMflCookies()">
 		<div ng-show="league">
 			{{league.name}}
-			<div ng-repeat="draftPick in assets.futureYearDraftPicks.draftPick">
-				{{draftPick.description}}
-			</div>
+			<h3>Players</h3>
 			<div ng-repeat="player in assets.players.player">
 				{{player.id}}
+			</div>
+			<h3>Picks</h3>
+			<div ng-repeat="draftPick in assets.futureYearDraftPicks.draftPick">
+				{{draftPick.description}}
 			</div>
 		</div>
 		<div ng-hide="league">

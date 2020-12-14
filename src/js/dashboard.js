@@ -37,7 +37,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			console.log("here");
 			console.log($scope.leagueAssets);
 			
-			$.each($scope.leagueAssets.assets.franchise, function(franchise){
+			$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
 				if(franchise.id == $scope.league.franchise_id){
 					$scope.assets = franchise;
 				}
