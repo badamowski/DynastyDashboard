@@ -23,34 +23,28 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		});
 	};
 
-	$scope.loadPlayer = function(playerId){
-		/*if($rootScope.players[playerId]){
-			return $rootScope.players[playerId];
-		}else{
-			mflExport
-		}*/
-	};
-
 	$scope.loadLeague = function(league){
 		$scope.league = league;
-		mflExport("assets", $rootScope.mflCookies, "leagueAssets", $scope.league).then(function(){
-			console.log("here");
-			console.log($scope.leagueAssets);
-			
+		$scope.leagueInfoById = {};
+		$scope.leagueAssetsById = {};
+
+		var allPromises = [];
+
+		allPromises.push(mflExport("assets", $rootScope.mflCookies, "leagueAssets", $scope.league));
+		allPromises.push(loadAllPlayers($scope.league));
+		allPromises.push(mflExport("league", $rootScope.mflCookies, "leagueInfo", $scope.league));
+
+		Promise.all(allPromises).then(function(){
 			$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
-				if(franchise.id == $scope.league.franchise_id){
-					$scope.assets = franchise;
-				}
+				$scope.leagueAssetsById[franchise.id] = franchise;
+			});
+
+			$.each($scope.leagueInfo.league.franchises.franchise, function(index, franchise){
+				$scope.leagueInfoById[franchise.id] = franchise;
 			});
 
 			spinnerOff();
 			applyScope();
-
-			/*var listOfPlayers = "";
-			$.each($scope.assets.players.player, function(player){
-				listOfPlayers += player.id + ","
-			});
-			mflExport("players", 24385)*/
 		});
 	};
 

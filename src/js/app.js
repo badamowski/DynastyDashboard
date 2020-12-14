@@ -99,6 +99,52 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		$("#" + modal).modal(true);
 	};
 
+	$rootScope.displayPlayer = function(playerId, league){
+		if($rootScope.players[playerId]){
+			return $rootScope.players[playerId];
+		}else{
+			loadPlayers(playerId, league).then(function(){
+				return $rootScope.players[playerId];
+			});
+		}
+	};
+
+	loadAllPlayers = function(league){
+		return new Promise(function(resolve, reject){
+			mflExport("players", $rootScope.mflCookies, "tempPlayers", league).then(function(){
+				if(!$rootScope.players){
+					$rootScope.players = {};
+				}
+				if(Array.isArray($scope.tempPlayers.players.player)){
+					$.each($scope.tempPlayers.players.player, function(index, player){
+						$rootScope.players[player.id] = player;
+					});
+				}else{
+					$rootScope.players[$scope.tempPlayers.players.player.id] = $scope.tempPlayers.players.player;
+				}			
+				resolve();	
+			});
+		});
+	};
+
+	loadPlayers = function(players, league){
+		return new Promise(function(resolve, reject){
+			mflExport("players", $rootScope.mflCookies, "tempPlayers", league, "PLAYERS=" + players).then(function(){
+				if(!$rootScope.players){
+					$rootScope.players = {};
+				}
+				if(Array.isArray($scope.tempPlayers.players.player)){
+					$.each($scope.tempPlayers.players.player, function(index, player){
+						$rootScope.players[player.id] = player;
+					});
+				}else{
+					$rootScope.players[$scope.tempPlayers.players.player.id] = $scope.tempPlayers.players.player;
+				}			
+				resolve();	
+			});
+		});
+	};
+
 	mflExport = function(type, mflCookies, saveTo, league, otherParams, method){
 		return new Promise(function(resolve, reject){
 			var body = {
