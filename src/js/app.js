@@ -99,12 +99,8 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		$("#" + modal).modal(true);
 	};
 
-	$rootScope.displayPlayer = function(playerId, league){
-		return retrievePlayer(playerId, league);
-	};
-
 	retrievePlayer = function(playerId, league){
-		if($rootScope.players[playerId]){
+		if($rootScope.players && $rootScope.players[playerId]){
 			return $rootScope.players[playerId];
 		}else{
 			loadPlayers(playerId, league).then(function(){
@@ -150,29 +146,72 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 	};
 
 	tradeValue = function(player, leagueInfo){
-		var body = {
-			info: player.name,
-			QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
-		};
-
+		if(!$rootScope.tradeValue){
+			$rootScope.tradeValue = {};
+		}
 		return new Promise(function(resolve, reject){
-			$.ajax({
-				url: "/.netlify/functions/dynasty-101-value",
-				type: "POST",
-				data: JSON.stringify(body),
-				contentType:"application/json",
-				dataType:"json",
-				success: function(data){
-					$scope.tradeValue[playerId] = data;
-					resolve();
+			findPlayerName(player).then(function(){
+				if($rootScope.dynasty101Name[player.id]){
+					var body = {
+						info: $rootScope.dynasty101Name[player.id],
+						QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+					};
+
+					$.ajax({
+						url: "/.netlify/functions/dynasty-101-value",
+						type: "POST",
+						data: JSON.stringify(body),
+						contentType:"application/json",
+						dataType:"json",
+						success: function(data){
+							$rootScope.tradeValue[player.id] = data;
+							resolve();
+						}
+					});
+				}else{
+					$rootScope.tradeValue[player.id] = {
+						value: "?",
+						tier: "?"
+					};
 				}
 			});
 		});
 	};
 
+	findPlayerName = function(player){
+		if(!$rootScope.dynasty101Name){
+			$rootScope.dynasty101Name = {};
+		}
+		return new Promise(function(resolve, reject){
+			if(player.name.indexOf(",")){
+				var splitPlayerName = player.name.split(","),
+					body = {
+						entry: splitPlayerName[1].trim() + " " + splitPlayerName[0].trim()
+					};
+
+				$.ajax({
+					url: "/.netlify/functions/dynasty-101-search",
+					type: "POST",
+					data: JSON.stringify(body),
+					contentType:"application/json",
+					dataType:"json",
+					success: function(data){
+						$rootScope.dynasty101Name[player.id] = data.name;
+						resolve();
+					}, error: function(error){
+						console.error(error);
+						resolve();
+					}
+				});
+			}else{
+				resolve();
+			}
+		});
+	};
+
 	is2QB = function(leagueInfo){
 		var twoQb = false;
-		$.each(leagueInfo.starters.position, function(index, position){
+		$.each(leagueInfo.league.starters.position, function(index, position){
 			if(position.name == "QB" && position.limit == "1-2"){
 				twoQb = true;
 			}

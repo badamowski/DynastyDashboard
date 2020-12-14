@@ -17,8 +17,8 @@
 		<div ng-show="league">
 			<h1>{{league.name}} - {{leagueInfoById[league.franchise_id].name}}</h1>
 			<h3>Players</h3>
-			<div ng-repeat="player in leagueAssetsById[league.franchise_id].players.player">
-				{{displayPlayer(player.id).name}} {{displayPlayer(player.id).team}} {{displayPlayer(player.id).position}}
+			<div ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | orderBy:orderFunction:true">
+				{{players[player.id].name}} {{players[player.id].team}} {{players[player.id].position}} - {{tradeValue[player.id].value}} - {{tradeValue[player.id].tier}}
 			</div>
 			<h3>Picks</h3>
 			<div ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">

@@ -1,4 +1,5 @@
 const https = require('https')
+const FormData = require('form-data');
 
 exports.handler = function(event, context, callback) {
   if(event.path == "/.netlify/functions/dynasty-101-value" && event.httpMethod == "POST"){
@@ -7,20 +8,11 @@ exports.handler = function(event, context, callback) {
     if(body.info && body.QB){
       console.log("dynasty-101-value", body.info);
 
-      var postData = "info:" + body.info + "\nQB:" + body.QB;
-      console.log(postData);
-      var options = {
-        hostname: "dynasty101.com",
-        path: "/calculator/loadData.php",
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': postData.length
-        }
-      };
+      var form = new FormData();
+      form.append('info', body.info);
+      form.append('QB', body.QB);
 
-      const req = https.request(options, response => {
-
+      form.submit( 'https://dynasty101.com/calculator/loadData.php', function(err, response) {
         var combined = "";
 
         response.on("data", data => {
@@ -28,25 +20,16 @@ exports.handler = function(event, context, callback) {
         });
 
         response.on("end", function(){
+          var returnObject = {
+            value: combined.split("</span>")[0].split(">")[1],
+            tier: combined.split("</span>")[1].split(">")[1]
+          };
           callback(null, {
             statusCode: 200,
-            body: combined
+            body: JSON.stringify(returnObject)
           });
         });
       });
-
-      req.on("error", error => {
-      	console.log(error);
-        callback(null, {
-        	statusCode: 500,
-        	body: error
-        });
-      });
-
-      req.write(postData);
-
-      req.end()
-
     }else{
       return {
         statusCode: 400,
