@@ -34,19 +34,19 @@ exports.handler = function(event, context, callback) {
 
       const req = https.request(options, response => {
 
-        var buffer = Buffer.from('');
+        var buffer = "";
 
         response.on("data", data => {
           console.log("DATA");
           console.log(data);
-          buffer.write(data);
+          buffer += data.toString("utf8");
         });
 
         response.on("end", function(){
           console.log("END");
           callback(null, {
             statusCode: 200,
-            body: buffer.toString("utf8")
+            body: buffer
           });
         });
       });
