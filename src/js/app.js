@@ -99,18 +99,34 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		$("#" + modal).modal(true);
 	};
 
-	mflExport = function(type, league, mflCookies, saveTo){
+	mflExport = function(type, mflCookies, saveTo, league, otherParams, method){
 		return new Promise(function(resolve, reject){
-			var leageQueryParam = "";
-			if(league){
-				leageQueryParam = "&L=" + league;
-			}
-			$.ajax({
-				url: "/.netlify/functions/mfl-export?TYPE=" + type + leageQueryParam,
-				type: "POST",
-				data: JSON.stringify({
+			var body = {
 					mflCookies: mflCookies
-				}),
+				},
+				queryParams = "";
+
+			if(otherParams){
+				queryParams += "&" + otherParams;
+			}
+
+			if(league){
+				if(league.league_id){
+					queryParams += "&L=" + league.league_id;
+				}
+				if(league.url){
+					body.hostname = league.url.substr(league.url.indexOf("://") + 3).split("/")[0];
+				}
+			}
+
+			if(method){
+				body.method = method;
+			}
+
+			$.ajax({
+				url: "/.netlify/functions/mfl-export?TYPE=" + type + queryParams,
+				type: "POST",
+				data: JSON.stringify(body),
 				contentType:"application/json",
 				dataType:"json",
 				success: function(data){

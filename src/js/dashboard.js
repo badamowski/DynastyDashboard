@@ -6,12 +6,13 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			if($rootScope.user){
 				retrieveMflCookies($rootScope.user.uid).then(function(){
 					if($rootScope.validMflCookies()){
-						mflExport("myleagues", null, $rootScope.mflCookies, "mflLeagues").then(function(){
+						mflExport("myleagues", $rootScope.mflCookies, "mflLeagues").then(function(){
 							if($scope.mflLeagues && $scope.mflLeagues.leagues && Object.keys($scope.mflLeagues.leagues).length == 1){
 								$scope.loadLeague(Object.values($scope.mflLeagues.leagues)[0]);
+							}else{
+								spinnerOff();
+								applyScope();
 							}
-							spinnerOff();
-							applyScope();
 						});
 					}else{
 						spinnerOff();
@@ -32,12 +33,18 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	$scope.loadLeague = function(league){
 		$scope.league = league;
-		mflExport("assets", $scope.league.league_id, "leagueAssets").then(function(){
+		mflExport("assets", $rootScope.mflCookies, "leagueAssets", $scope.league).then(function(){
+			console.log("here");
+			console.log($scope.leagueAssets);
+			
 			$.each($scope.leagueAssets.assets.franchise, function(franchise){
 				if(franchise.id == $scope.league.franchise_id){
 					$scope.assets = franchise;
 				}
 			});
+
+			spinnerOff();
+			applyScope();
 
 			/*var listOfPlayers = "";
 			$.each($scope.assets.players.player, function(player){

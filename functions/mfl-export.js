@@ -15,30 +15,40 @@ exports.handler = function(event, context, callback) {
 
       var path = `/2020/export?${leagueQueryParams}`;
 
+      var hostname = "api.myfantasyleague.com";
+      if(body.hostname){
+      	hostname = body.hostname;
+      }
+
+      var method = "GET";
+      if(body.method){
+      	method = body.method;
+      }
+
       var options = {
-        hostname: "api.myfantasyleague.com",
+        hostname: hostname,
         path: path,
-        method: "GET",
-        port: 443,
+        method: method,
         headers: {"Cookie": body.mflCookies}
       };
 
       const req = https.request(options, response => {
+
+        var buffer = Buffer.from('');
+
         response.on("data", data => {
-        	console.log("HERE");
-        	console.log(data);
-        	var returnValue;
-        	if(Buffer.isBuffer(data)){
-        		returnValue = data.toString("utf-8");
-        	}else{
-        		returnValue = JSON.stringify(data);
-        	}
-        	console.log(returnValue);
+          console.log("DATA");
+          console.log(data);
+          buffer.write(data);
+        });
+
+        response.on("end", function(){
+          console.log("END");
           callback(null, {
             statusCode: 200,
-            body: returnValue
+            body: buffer.toString("utf8")
           });
-        })
+        });
       });
 
       req.on("error", error => {
