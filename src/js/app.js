@@ -100,6 +100,10 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 	};
 
 	$rootScope.displayPlayer = function(playerId, league){
+		return retrievePlayer(playerId, league);
+	};
+
+	retrievePlayer = function(playerId, league){
 		if($rootScope.players[playerId]){
 			return $rootScope.players[playerId];
 		}else{
@@ -143,6 +147,37 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 				resolve();	
 			});
 		});
+	};
+
+	tradeValue = function(player, leagueInfo){
+		var body = {
+			info: player.name,
+			QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+		};
+
+		return new Promise(function(resolve, reject){
+			$.ajax({
+				url: "/.netlify/functions/dynasty-101-value",
+				type: "POST",
+				data: JSON.stringify(body),
+				contentType:"application/json",
+				dataType:"json",
+				success: function(data){
+					$scope.tradeValue[playerId] = data;
+					resolve();
+				}
+			});
+		});
+	};
+
+	is2QB = function(leagueInfo){
+		var twoQb = false;
+		$.each(leagueInfo.starters.position, function(index, position){
+			if(position.name == "QB" && position.limit == "1-2"){
+				twoQb = true;
+			}
+		});
+		return twoQb;
 	};
 
 	mflExport = function(type, mflCookies, saveTo, league, otherParams, method){

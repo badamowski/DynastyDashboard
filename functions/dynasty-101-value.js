@@ -1,36 +1,16 @@
 const https = require('https')
 
 exports.handler = function(event, context, callback) {
-  if(event.path == "/.netlify/functions/mfl-export" && event.httpMethod == "POST"){
+  if(event.path == "/.netlify/functions/dynasty-101-value" && event.httpMethod == "POST"){
     var body = JSON.parse(event.body);
 
-    if(body.mflCookies && event.queryStringParameters.TYPE){
-      console.log("Export call", event.queryStringParameters);
-
-      var leagueQueryParams = "";
-      Object.keys(event.queryStringParameters).forEach(function(key,index) {
-  	    leagueQueryParams += key + "=" + event.queryStringParameters[key] + "&";
-  	  });
-	  
-      leagueQueryParams += "JSON=1";
-
-      var path = `/2020/export?${leagueQueryParams}`;
-
-      var hostname = "api.myfantasyleague.com";
-      if(body.hostname){
-      	hostname = body.hostname;
-      }
-
-      var method = "GET";
-      if(body.method){
-      	method = body.method;
-      }
+    if(body.info && body.QB){
+      console.log("dynasty-101-value", body.info);
 
       var options = {
-        hostname: hostname,
-        path: path,
-        method: method,
-        headers: {"Cookie": body.mflCookies}
+        hostname: "dynasty101.com",
+        path: "/calculator/loadData.php",
+        method: "POST"
       };
 
       const req = https.request(options, response => {
