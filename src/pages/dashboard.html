@@ -18,7 +18,7 @@
 			<h1>{{league.name}} - {{leagueInfoById[league.franchise_id].name}}</h1>
 			<h3>Players</h3>
 			<div ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | orderBy:orderFunction:true">
-				{{players[player.id].name}} {{players[player.id].team}} {{players[player.id].position}} - {{tradeValue[player.id].value}} - {{tradeValue[player.id].tier}}
+				{{cache.mfl.players[player.id].name}} {{cache.mfl.players[player.id].team}} {{cache.mfl.players[player.id].position}} - {{cache.dynasty101.players[player.id].value}} - {{cache.dynasty101.players[player.id].tier}}
 			</div>
 			<h3>Picks</h3>
 			<div ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">

@@ -47,7 +47,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			applyScope();
 
 			$.each($scope.leagueAssetsById[$scope.league.franchise_id].players.player, function(index, player){
-				tradeValue($rootScope.players[player.id], $scope.leagueInfo).then(function(){
+				dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
 					applyRootScope();
 				});
 			});
@@ -55,8 +55,8 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	$scope.orderFunction = function(player){
-		if($rootScope.tradeValue && $rootScope.tradeValue[player.id] && $rootScope.tradeValue[player.id].value && $rootScope.tradeValue[player.id].value != "?"){
-			return Number($rootScope.tradeValue[player.id].value);
+		if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.players && $rootScope.cache.dynasty101.players[player.id] && $rootScope.cache.dynasty101.players[player.id].value){
+			return Number($rootScope.cache.dynasty101.players[player.id].value);
 		}else{
 			return 0;
 		}

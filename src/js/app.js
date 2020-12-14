@@ -75,6 +75,10 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 	$rootScope.carUsers = {};
 
 	$scope.init = function(){
+		$rootScope.cache = {
+			dynasty101: {players: {}},
+			mfl: {players: {}}
+		};
 		userInit();
 	};
 
@@ -111,96 +115,105 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 
 	loadAllPlayers = function(league){
 		return new Promise(function(resolve, reject){
-			mflExport("players", $rootScope.mflCookies, "tempPlayers", league).then(function(){
-				if(!$rootScope.players){
-					$rootScope.players = {};
-				}
-				if(Array.isArray($scope.tempPlayers.players.player)){
-					$.each($scope.tempPlayers.players.player, function(index, player){
-						$rootScope.players[player.id] = player;
-					});
+			dynastyDashboardDatabase.ref("cache/mfl/players").once("value", function(data){
+				var cachedPlayerData = data.val();
+
+				if(cachedPlayerData && cachedPlayerData.lastUpdated && moment(cachedPlayerData.lastUpdated, utcDateFormat).isSame(moment(), "day")){
+					$rootScope.cache.mfl.players = cachedPlayerData.players;
+					resolve();
 				}else{
-					$rootScope.players[$scope.tempPlayers.players.player.id] = $scope.tempPlayers.players.player;
-				}			
-				resolve();	
-			});
-		});
-	};
+					mflExport("players", $rootScope.mflCookies, "tempPlayers", league).then(function(){
+						if(Array.isArray($scope.tempPlayers.players.player)){
+							$.each($scope.tempPlayers.players.player, function(index, player){
+								$rootScope.cache.mfl.players[player.id] = player;
+							});
 
-	loadPlayers = function(players, league){
-		return new Promise(function(resolve, reject){
-			mflExport("players", $rootScope.mflCookies, "tempPlayers", league, "PLAYERS=" + players).then(function(){
-				if(!$rootScope.players){
-					$rootScope.players = {};
-				}
-				if(Array.isArray($scope.tempPlayers.players.player)){
-					$.each($scope.tempPlayers.players.player, function(index, player){
-						$rootScope.players[player.id] = player;
-					});
-				}else{
-					$rootScope.players[$scope.tempPlayers.players.player.id] = $scope.tempPlayers.players.player;
-				}			
-				resolve();	
-			});
-		});
-	};
+							var firebaseMFLPlayers = {
+								players: $rootScope.cache.mfl.players,
+								lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
+							};
 
-	tradeValue = function(player, leagueInfo){
-		if(!$rootScope.tradeValue){
-			$rootScope.tradeValue = {};
-		}
-		return new Promise(function(resolve, reject){
-			findPlayerName(player).then(function(){
-				if($rootScope.dynasty101Name[player.id]){
-					var body = {
-						info: $rootScope.dynasty101Name[player.id],
-						QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
-					};
-
-					$.ajax({
-						url: "/.netlify/functions/dynasty-101-value",
-						type: "POST",
-						data: JSON.stringify(body),
-						contentType:"application/json",
-						dataType:"json",
-						success: function(data){
-							$rootScope.tradeValue[player.id] = data;
+							dynastyDashboardDatabase.ref("cache/mfl/players").update(firebaseMFLPlayers).then(function(){
+								resolve();
+							});
+						}else{
+							$rootScope.cache.mfl.players[$scope.tempPlayers.players.player.id] = $scope.tempPlayers.players.player;
 							resolve();
-						}
+						}			
 					});
-				}else{
-					$rootScope.tradeValue[player.id] = {
-						value: "?",
-						tier: "?"
-					};
 				}
 			});
 		});
 	};
 
-	findPlayerName = function(player){
-		if(!$rootScope.dynasty101Name){
-			$rootScope.dynasty101Name = {};
-		}
+	dynasty101TradeValue = function(player, leagueInfo){
 		return new Promise(function(resolve, reject){
-			if(player.name.indexOf(",")){
-				var splitPlayerName = player.name.split(","),
-					body = {
-						entry: splitPlayerName[1].trim() + " " + splitPlayerName[0].trim()
-					};
+			findDynasty101Player(player).then(function(){
+				if($rootScope.cache.dynasty101.players[player.id]){
+					if($rootScope.cache.dynasty101.players[player.id].value){
+						resolve();
+					}else{
+						var body = {
+							info: $rootScope.cache.dynasty101.players[player.id].name,
+							QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+						};
 
-				$.ajax({
-					url: "/.netlify/functions/dynasty-101-search",
-					type: "POST",
-					data: JSON.stringify(body),
-					contentType:"application/json",
-					dataType:"json",
-					success: function(data){
-						$rootScope.dynasty101Name[player.id] = data.name;
+						$.ajax({
+							url: "/.netlify/functions/dynasty-101-value",
+							type: "POST",
+							data: JSON.stringify(body),
+							contentType:"application/json",
+							dataType:"json",
+							success: function(data){
+								$rootScope.cache.dynasty101.players[player.id].value = data.value;
+								$rootScope.cache.dynasty101.players[player.id].tier = data.tier;
+								$rootScope.cache.dynasty101.players[player.id].lastUpdated = moment().tz(moment.tz.guess()).format(utcDateFormat);
+								dynastyDashboardDatabase.ref("cache/dynasty101/players/" + player.id).update($rootScope.cache.dynasty101.players[player.id]).then(function(){
+									resolve();
+								});
+							}
+						});
+					}
+				}else{
+					$rootScope.cache.dynasty101.players[player.id].value = "0";
+					$rootScope.cache.dynasty101.players[player.id].tier = "?";
+					resolve();
+				}
+			});
+		});
+	};
+
+	findDynasty101Player = function(player){
+		return new Promise(function(resolve, reject){
+			if(!$rootScope.cache.dynasty101.players[player.id]){
+				dynastyDashboardDatabase.ref("cache/dynasty101/players/" + player.id).once("value", function(data){
+					var dynasty101Player = data.val();
+					if(dynasty101Player){
+						$rootScope.cache.dynasty101.players[player.id] = dynasty101Player;
 						resolve();
-					}, error: function(error){
-						console.error(error);
-						resolve();
+					}else{
+						var splitPlayerName = player.name.split(","),
+							body = {
+								entry: splitPlayerName[1].trim() + " " + splitPlayerName[0].trim()
+							};
+
+						$.ajax({
+							url: "/.netlify/functions/dynasty-101-search",
+							type: "POST",
+							data: JSON.stringify(body),
+							contentType:"application/json",
+							dataType:"json",
+							success: function(data){
+								$rootScope.cache.dynasty101.players[player.id] = data;
+								dynastyDashboardDatabase.ref("cache/dynasty101/players/" + player.id).update(data).then(function(){
+									resolve();
+								});
+							}, error: function(error){
+								console.log("unable to find " + player.name + " in Dynasty 101. MFL Id: " + player.id);
+								console.error(error);
+								resolve();
+							}
+						});
 					}
 				});
 			}else{
