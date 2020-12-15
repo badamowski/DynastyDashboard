@@ -243,7 +243,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		return twoQb;
 	};
 
-	mflExport = function(type, mflCookies, saveTo, league, otherParams, method){
+	mflExport = function(type, mflCookies, saveTo, league, otherParams, method, saveToTwo){
 		return new Promise(function(resolve, reject){
 			var body = {
 					mflCookies: mflCookies
@@ -274,7 +274,11 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 				contentType:"application/json",
 				dataType:"json",
 				success: function(data){
-					$scope[saveTo] = data;
+					if(saveToTwo){
+						$scope[saveTo][saveToTwo] = data;
+					}else{
+						$scope[saveTo] = data;
+					}
 					resolve();
 				}
 			});

@@ -1,6 +1,9 @@
 app.controller('DashboardController', function($scope, $routeParams, $location, $rootScope, $timeout) {
 
-	var initialLoad = true;
+	var initialLoad = true,
+		studTiers = ["T1", "T2", "T3", "T4", "T5"];
+
+	$scope.searchResults = [];
 
 	$scope.init = function(){
 		initialLoad = true;
@@ -10,27 +13,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 				retrieveMflCookies($rootScope.user.uid).then(function(){
 					if($rootScope.validMflCookies()){
 						mflExport("myleagues", $rootScope.mflCookies, "mflLeagues").then(function(){
-							var leagueOptions = "<option></option>";
-
-							$.each($scope.mflLeagues.leagues, function(key, value){
-								leagueOptions += "<option value='" + key + "'>" + value.name + "</option>";
-							});
-
-							$("#leagueSelect").empty().html(leagueOptions);
-							$("#leagueSelect").select2({
-								dropdownParent: $('#filter-modal'),
-				    			allowClear: true,
-				    			theme: "material"
-							});
-
-							$("#leagueSelect").change(function(event){
-								if(!initialLoad){
-									selectLeague();
-								}else{
-									initialLoad = false;
-								}
-							});
-
+							buildLeagueSelect();
 							if($scope.mflLeagues && $scope.mflLeagues.leagues && Object.keys($scope.mflLeagues.leagues).length == 1){
 								$("#leagueSelect").val(Object.keys($scope.mflLeagues.leagues)[0]).prop("disabled", true).trigger("change");
 								$scope.loadLeague(Object.values($scope.mflLeagues.leagues)[0]);
@@ -52,12 +35,14 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		$scope.league = league;
 		$scope.leagueInfoById = {};
 		$scope.leagueAssetsById = {};
+		$scope.playerRosterStatus = {};
 
 		var allPromises = [];
 
 		allPromises.push(mflExport("assets", $rootScope.mflCookies, "leagueAssets", $scope.league));
 		allPromises.push(loadAllPlayers($scope.league));
 		allPromises.push(mflExport("league", $rootScope.mflCookies, "leagueInfo", $scope.league));
+		allPromises.push(mflExport("myWatchList", $rootScope.mflCookies, "myWatchList", $scope.league));
 
 		Promise.all(allPromises).then(function(){
 			$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
@@ -76,6 +61,27 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 					applyRootScope();
 				});
 			});
+
+			var watchListPlayerIds = "";
+			$.each($scope.myWatchList.myWatchList.player, function(index, player){
+				if(!$scope.playerRosterStatus[player.id]){
+					watchListPlayerIds += player.id + ",";
+				}
+				dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
+					applyRootScope();
+				});
+			});
+			if(watchListPlayerIds){
+				mflExport("playerRosterStatus", $rootScope.mflCookies, "watchPlayerRosterStatus", $scope.league, "PLAYERS=" + watchListPlayerIds).then(function(){
+					$.each($scope.watchPlayerRosterStatus.playerRosterStatuses.playerStatus, function(index, playerStatus){
+						$scope.playerRosterStatus[playerStatus.id] = playerStatus;
+					});
+				});
+			}else{
+				applyScope();
+			}
+
+			buildPlayerSelect();
 		});
 	};
 
@@ -98,6 +104,100 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	$scope.extractRound = function(pickDescription){
 		return pickDescription.split("Round ")[1].split(" ")[0]
+	};
+
+	$scope.studsFilterFunction = function(player) {
+		if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.players && $rootScope.cache.dynasty101.players[player.id] && $rootScope.cache.dynasty101.players[player.id].tier){
+			return studTiers.includes($rootScope.cache.dynasty101.players[player.id].tier);
+		} else {
+			return false;
+		}
+	};
+
+	$scope.stashFilterFunction = function(player) {
+		return !$scope.studsFilterFunction(player);
+	};
+
+	$scope.displayPlayerRosterStatus = function(playerId){
+		if($scope.playerRosterStatus && $scope.playerRosterStatus[playerId]){
+			if($scope.playerRosterStatus[playerId].is_fa == "1" || $scope.playerRosterStatus[playerId].error == "NFL FA"){
+				return "Free Agent";
+			}else if($scope.playerRosterStatus[playerId].roster_franchise.franchise_id != $scope.league.franchise_id){
+				return $scope.leagueInfoById[$scope.playerRosterStatus[playerId].roster_franchise.franchise_id].name;
+			}else{
+				return "";
+			}
+		}else{
+			return "";
+		}
+	};
+
+	buildLeagueSelect = function(){
+		var leagueOptions = "<option></option>";
+
+		$.each($scope.mflLeagues.leagues, function(key, value){
+			leagueOptions += "<option value='" + key + "'>" + value.name + "</option>";
+		});
+
+		$("#leagueSelect").empty().html(leagueOptions);
+		$("#leagueSelect").select2({
+			allowClear: true,
+			theme: "material"
+		});
+
+		$("#leagueSelect").change(function(event){
+			if(!initialLoad){
+				selectLeague();
+			}else{
+				initialLoad = false;
+			}
+		});
+	};
+
+	buildPlayerSelect = function(){
+		var playerOptions = "<option></option>";
+
+		$.each($rootScope.cache.mfl.players, function(key, value){
+			playerOptions += "<option value='" + key + "'>" + value.name + " " + value.position + " " + value.team + "</option>";
+		});
+
+		$("#playerSelect").empty().html(playerOptions);
+		$("#playerSelect").select2({
+			allowClear: true,
+			theme: "material"
+		});
+
+		$("#playerSelect").change(function(event){
+			var value = $("#playerSelect").select2('data');
+			$scope.searchResults = [];
+			if(value && value.length > 0){
+				var playerIdList = "";
+				$.each(value, function(index, selectedPlayer){
+					$scope.searchResults.push({id: selectedPlayer.id});
+
+					if(!$scope.playerRosterStatus[selectedPlayer.id]){
+						playerIdList += selectedPlayer.id + ",";
+					}
+
+					dynasty101TradeValue($rootScope.cache.mfl.players[selectedPlayer.id], $scope.leagueInfo).then(function(){
+						applyRootScope();
+					});
+				});
+
+				if(playerIdList){
+					mflExport("playerRosterStatus", $rootScope.mflCookies, "searchPlayerRosterStatus", $scope.league, "PLAYERS=" + playerIdList).then(function(){
+						$.each($scope.searchPlayerRosterStatus.playerRosterStatuses.playerStatus, function(index, playerStatus){
+							$scope.playerRosterStatus[playerStatus.id] = playerStatus;
+						});
+						applyScope();
+					});
+				}else{
+					applyScope();
+				}
+			}
+
+			applyScope();
+		});
 	};
 
 	selectLeague = function(){
