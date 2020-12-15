@@ -1,13 +1,38 @@
 app.controller('DashboardController', function($scope, $routeParams, $location, $rootScope, $timeout) {
 
+	var initialLoad = true;
+
 	$scope.init = function(){
+		initialLoad = true;
 		spinnerOn();
 		userInit().then(function(){
 			if($rootScope.user){
 				retrieveMflCookies($rootScope.user.uid).then(function(){
 					if($rootScope.validMflCookies()){
 						mflExport("myleagues", $rootScope.mflCookies, "mflLeagues").then(function(){
+							var leagueOptions = "<option></option>";
+
+							$.each($scope.mflLeagues.leagues, function(key, value){
+								leagueOptions += "<option value='" + key + "'>" + value.name + "</option>";
+							});
+
+							$("#leagueSelect").empty().html(leagueOptions);
+							$("#leagueSelect").select2({
+								dropdownParent: $('#filter-modal'),
+				    			allowClear: true,
+				    			theme: "material"
+							});
+
+							$("#leagueSelect").change(function(event){
+								if(!initialLoad){
+									selectLeague();
+								}else{
+									initialLoad = false;
+								}
+							});
+
 							if($scope.mflLeagues && $scope.mflLeagues.leagues && Object.keys($scope.mflLeagues.leagues).length == 1){
+								$("#leagueSelect").val(Object.keys($scope.mflLeagues.leagues)[0]).prop("disabled", true).trigger("change");
 								$scope.loadLeague(Object.values($scope.mflLeagues.leagues)[0]);
 							}else{
 								spinnerOff();
@@ -71,9 +96,15 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		});
 	};
 
-	$scope.selectLeague = function(){
+	$scope.extractRound = function(pickDescription){
+		return pickDescription.split("Round ")[1].split(" ")[0]
+	};
+
+	selectLeague = function(){
 		var leagueSelect = $("#leagueSelect").val();
-		$scope.loadLeague($rootScope.mflLeagues.leagues[leagueSelect]);
-		applyScope();
+		if(leagueSelect && $scope.mflLeagues && $scope.mflLeagues.leagues && $scope.mflLeagues.leagues[leagueSelect]){
+			spinnerOn();
+			$scope.loadLeague($scope.mflLeagues.leagues[leagueSelect]);
+		}
 	};
 });

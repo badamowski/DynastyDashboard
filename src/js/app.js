@@ -103,6 +103,15 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		$("#" + modal).modal(true);
 	};
 
+	$scope.showBirthdate = function(datetime){
+		if(datetime){
+			var birthdate = moment(datetime * 1000);
+			return birthdate.format("MM/DD/YYYY") + " (" + moment().diff(birthdate, "years") + ")";
+		}else{
+			return "";
+		}
+	};
+
 	retrievePlayer = function(playerId, league){
 		if($rootScope.players && $rootScope.players[playerId]){
 			return $rootScope.players[playerId];
@@ -122,7 +131,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 					$rootScope.cache.mfl.players = cachedPlayerData.players;
 					resolve();
 				}else{
-					mflExport("players", $rootScope.mflCookies, "tempPlayers", league).then(function(){
+					mflExport("players", $rootScope.mflCookies, "tempPlayers", league, "DETAILS=1").then(function(){
 						if(Array.isArray($scope.tempPlayers.players.player)){
 							$.each($scope.tempPlayers.players.player, function(index, player){
 								$rootScope.cache.mfl.players[player.id] = player;
@@ -175,8 +184,10 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 						});
 					}
 				}else{
-					$rootScope.cache.dynasty101.players[player.id].value = "0";
-					$rootScope.cache.dynasty101.players[player.id].tier = "?";
+					$rootScope.cache.dynasty101.players[player.id] = {
+						value: "0",
+						tier: "?"
+					}
 					resolve();
 				}
 			});

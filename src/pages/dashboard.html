@@ -14,22 +14,54 @@
 		<button class="btn btn-success" ng-click="mflLogin()">Link MFL Account</button>
 	</div>
 	<div ng-show="validMflCookies()">
-		<div ng-show="league">
-			<h1>{{league.name}} - {{leagueInfoById[league.franchise_id].name}}</h1>
-			<h3>Players</h3>
-			<div ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | orderBy:orderFunction:true">
-				{{cache.mfl.players[player.id].name}} {{cache.mfl.players[player.id].team}} {{cache.mfl.players[player.id].position}} - {{cache.dynasty101.players[player.id].value}} - {{cache.dynasty101.players[player.id].tier}}
-			</div>
-			<h3>Picks</h3>
-			<div ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
-				{{draftPick.description}}
-			</div>
-		</div>
-		<div ng-hide="league">
-			Select a league: 
-			<div ng-repeat="(leaguekey, mflLeague) in mflLeagues.leagues">
-				{{leaguekey}} - {{mflLeague.name}} - {{mflLeague.league_id}} - {{mflLeague.franchise_id}}
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-group">
+					<label class="control-label" for="leagueSelect">League</label>
+					<div class="flex-import">
+						<select class="form-control" id="leagueSelect" data-placeholder="Select League">
+						</select>
+					</div>
+				</div>
 			</div>
 		</div>
+		<span ng-show="league">
+			<div class="row">
+				<div class="col-md-12">
+					<h1>{{leagueInfoById[league.franchise_id].name}}</h1>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">
+					<h3>Players</h3>
+					<div class="card" ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | orderBy:orderFunction:true">
+						<div class="card-number">
+							<span class="lap-number">{{cache.mfl.players[player.id].position}}</span>
+						</div>
+						<div class="card-info">
+							{{cache.mfl.players[player.id].name}} {{cache.mfl.players[player.id].team}} {{showBirthdate(cache.mfl.players[player.id].birthdate)}}
+							<div class="card-times">
+								<div>
+									<div class="lap-time">{{cache.dynasty101.players[player.id].tier}} {{cache.dynasty101.players[player.id].value}}</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<h3>Picks</h3>
+					<div class="card" ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
+						<div class="card-number">
+							<span class="lap-number">{{extractRound(draftPick.description)}}</span>
+						</div>
+						<div class="card-info">
+							{{draftPick.description}}
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+				</div>
+			</div>
+		</span>
 	</div>
 </div>
