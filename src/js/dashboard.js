@@ -34,8 +34,11 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	$scope.loadLeague = function(league){
 		$scope.league = league;
 		$scope.leagueInfoById = {};
+		$scope.leagueInfoByName = {};
 		$scope.leagueAssetsById = {};
 		$scope.playerRosterStatus = {};
+		$scope.leagueStandingsById = {};
+		$scope.teamRankById = {};
 
 		var allPromises = [];
 
@@ -43,6 +46,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		allPromises.push(loadAllPlayers($scope.league));
 		allPromises.push(mflExport("league", $rootScope.mflCookies, "leagueInfo", $scope.league));
 		allPromises.push(mflExport("myWatchList", $rootScope.mflCookies, "myWatchList", $scope.league));
+		allPromises.push(mflExport("leagueStandings", $rootScope.mflCookies, "leagueStandings", $scope.league));
 
 		Promise.all(allPromises).then(function(){
 			$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
@@ -51,6 +55,16 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 			$.each($scope.leagueInfo.league.franchises.franchise, function(index, franchise){
 				$scope.leagueInfoById[franchise.id] = franchise;
+				$scope.leagueInfoByName[franchise.name] = franchise;
+			});
+
+			$scope.leagueStandings.leagueStandings.franchise.sort(function(franchise1, franchise2){
+				return parseFloat(franchise2.altpwr) - parseFloat(franchise1.altpwr);
+			});
+
+			$.each($scope.leagueStandings.leagueStandings.franchise, function(index, franchise){
+				$scope.teamRankById[franchise.id] = index + 1;
+				$scope.leagueStandingsById[franchise.id] = franchise;
 			});
 
 			spinnerOff();
@@ -90,6 +104,17 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			return Number($rootScope.cache.dynasty101.players[player.id].value);
 		}else{
 			return 0;
+		}
+	};
+
+	$scope.estimatedPick = function(pickDescription){
+		var round = $scope.extractRound(pickDescription),
+			teamName = pickDescription.split("Pick from ")[1];
+
+		if($scope.leagueInfo && $scope.leagueInfo.league && $scope.leagueInfo.league.franchises && $scope.leagueInfo.league.franchises.count && $scope.teamRankById && $scope.leagueInfoByName && $scope.leagueInfoByName[teamName] && $scope.teamRankById[$scope.leagueInfoByName[teamName].id]){
+			return round + "." + ($scope.leagueInfo.league.franchises.count - ($scope.teamRankById[$scope.leagueInfoByName[teamName].id] - 1)).toString();
+		}else{
+			return "";
 		}
 	};
 

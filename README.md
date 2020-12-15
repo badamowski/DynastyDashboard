@@ -12,6 +12,7 @@ netlify dev
 MFL Doc: https://www63.myfantasyleague.com/2020/api_info?STATE=test&CCAT=export&TYPE=players&L=24385
 
 TODO:
+* Is date logic on dynasty 101 cache value?
 * Tagging of players with 1:many tags
 * Draft Pick Value - Estimated based on current standings
 ** League Standings: https://www63.myfantasyleague.com/2020/export?TYPE=leagueStandings&L=24385&APIKEY=&JSON=1

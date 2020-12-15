@@ -76,7 +76,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 
 	$scope.init = function(){
 		$rootScope.cache = {
-			dynasty101: {players: {}},
+			dynasty101: {players: {}, picks: {}},
 			mfl: {players: {}}
 		};
 		userInit();
@@ -153,6 +153,86 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 				}
 			});
 		});
+	};
+
+	dynasty101PickTradeValue = function(year, estimatedPick, leagueInfo){
+		return new Promise(function(resolve, reject){
+			var pickName = dynasty101PickName(year, estimatedPick, leagueInfo.league.franchises.count),
+				pickKey = pickName.replaceAll(" ", "");
+			if(pickName){
+				dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).once("value", function(data){
+					var cachedPickData = data.val();
+					if(cachedPickData){
+						$rootScope.cache.dynasty101.picks[pickKey] = cachedPickData;
+						resolve();
+					}else{
+						var body = {
+							info: pickName,
+							QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+						};
+
+						$.ajax({
+							url: "/.netlify/functions/dynasty-101-value",
+							type: "POST",
+							data: JSON.stringify(body),
+							contentType:"application/json",
+							dataType:"json",
+							success: function(data){
+								$rootScope.cache.dynasty101.picks[pickKey] = {
+									pickName: pickName,
+									value: data.value
+									tier: data.tier,
+									lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
+								};
+								dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).update($rootScope.cache.dynasty101.picks[pickKey]).then(function(){
+									resolve();
+								});
+							}
+						});
+					}
+				});
+			}else{
+				resolve();
+			}
+		});
+	};
+
+	dynasty101PickName = function(year, estimatedPick, teamCount){
+		if(year == "2021"){
+			var splitPick = estimatedPick.split("."),
+				round = parseInt(splitPick[0]),
+				pick = parseInt(splitPick[1]),
+				totalPick = ((round - 1) * teamCount) + pick;
+			return "2021 Pick " + totalPick.toString();
+		}else if(year == "2022"){
+			var splitPick = estimatedPick.split("."),
+				round = parseInt(splitPick[0]),
+				pick = parseInt(splitPick[1]),
+				pickPercentage = pick/teamCount,
+				roundString, pickString;
+
+			if(round == 1){
+				roundString = "1st";
+			}else if(round == 2){
+				roundString = "2nd";
+			}else if(round == 3){
+				roundString = "3rd";
+			}else{
+				roundString = round.toString() + "th";
+			}
+
+			if(pickPercentage <= 0.33){
+				pickString = "Early ";
+			} else if(pickPercentage <= 0.66){
+				pickString = "Mid ";
+			} else {
+				pickString = "Late ";
+			}
+
+			return "2022 " pickString + roundString;
+		}else{
+			return false;
+		}
 	};
 
 	dynasty101TradeValue = function(player, leagueInfo){

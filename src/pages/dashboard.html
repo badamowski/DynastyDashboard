@@ -28,7 +28,7 @@
 		<span ng-show="league">
 			<div class="row">
 				<div class="col-md-12">
-					<h1>{{leagueInfoById[league.franchise_id].name}}</h1>
+					<h1>{{teamRankById[league.franchise_id]}} {{leagueInfoById[league.franchise_id].name}} ({{leagueStandingsById[league.franchise_id].h2hw}}-{{leagueStandingsById[league.franchise_id].h2hl}}-{{leagueStandingsById[league.franchise_id].h2ht}})</h1>
 				</div>
 			</div>
 			<div class="row">
@@ -48,7 +48,7 @@
 					<h3>Picks</h3>
 					<div class="card" ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
 						<div class="card-number">
-							<span class="lap-number">{{extractRound(draftPick.description)}}</span>
+							<span class="lap-number">{{estimatedPick(draftPick.description)}}</span>
 						</div>
 						<div class="card-info">
 							{{draftPick.description}}
