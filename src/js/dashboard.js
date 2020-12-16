@@ -42,14 +42,18 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		$scope.playerRosterStatus = {};
 		$scope.leagueStandingsById = {};
 		$scope.teamRankById = {};
+		$scope.projectedScoresById = {};
 
 		var allPromises = [];
 
+		loadAllInjuries();
+		
 		allPromises.push(mflExport("assets", $rootScope.mflCookies, "leagueAssets", $scope.league));
 		allPromises.push(loadAllPlayers($scope.league));
 		allPromises.push(mflExport("league", $rootScope.mflCookies, "leagueInfo", $scope.league));
 		allPromises.push(mflExport("myWatchList", $rootScope.mflCookies, "myWatchList", $scope.league));
 		allPromises.push(mflExport("leagueStandings", $rootScope.mflCookies, "leagueStandings", $scope.league));
+		allPromises.push(mflExport("projectedScores", $rootScope.mflCookies, "projectedScores", $scope.league));
 
 		Promise.all(allPromises).then(function(){
 			$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
@@ -68,6 +72,10 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			$.each($scope.leagueStandings.leagueStandings.franchise, function(index, franchise){
 				$scope.teamRankById[franchise.id] = index + 1;
 				$scope.leagueStandingsById[franchise.id] = franchise;
+			});
+
+			$.each($scope.projectedScores.projectedScores.playerScore, function(index, playerProjectedScore){
+				$scope.projectedScoresById[playerProjectedScore.id] = playerProjectedScore;
 			});
 
 			$rootScope.pageTitle = $scope.leagueInfoById[$scope.league.franchise_id].name + " (" + $scope.leagueStandingsById[$scope.league.franchise_id].h2hw + "-" + $scope.leagueStandingsById[$scope.league.franchise_id].h2hl + "-" + $scope.leagueStandingsById[$scope.league.franchise_id].h2ht + ")";
@@ -99,9 +107,13 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		return dynasty101PickKey($scope.extractYear(pickDescription), $scope.estimatedPick(pickDescription), $scope.leagueInfo.league.franchises.count);
 	};
 
+	$scope.extractTeam = function(pickDescription){
+		return pickDescription.split("Pick from ")[1];
+	};
+
 	$scope.estimatedPick = function(pickDescription){
 		var round = $scope.extractRound(pickDescription),
-			teamName = pickDescription.split("Pick from ")[1];
+			teamName = $scope.extractTeam(pickDescription);
 
 		if($scope.leagueInfo && $scope.leagueInfo.league && $scope.leagueInfo.league.franchises && $scope.leagueInfo.league.franchises.count && $scope.teamRankById && $scope.leagueInfoByName && $scope.leagueInfoByName[teamName] && $scope.teamRankById[$scope.leagueInfoByName[teamName].id]){
 			return round + "." + ($scope.leagueInfo.league.franchises.count - ($scope.teamRankById[$scope.leagueInfoByName[teamName].id] - 1)).toString();
@@ -117,6 +129,14 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		doMflLogin(mflUsername, mflPassword).then(function(){
 			$scope.init();
 		});
+	};
+
+	$scope.displayProjectedScore = function(projectedScore){
+		if(projectedScore){
+			return projectedScore;
+		}else{
+			return "0";
+		}
 	};
 
 	$scope.extractRound = function(pickDescription){

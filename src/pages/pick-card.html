@@ -1,0 +1,18 @@
+<div class="card left-nav-lap">
+	<div class="card-number">
+		<span class="lap-number">{{estimatedPick(draftPick.description)}}</span>
+	</div>
+	<div class="card-info">
+		<div>
+			<strong>{{extractYear(draftPick.description)}} Round {{extractRound(draftPick.description)}}</strong>
+		</div>
+		<div class="small">
+			{{extractTeam(draftPick.description)}}
+		</div>
+	</div>
+	<div>
+		<div class="lap-time">
+			<i class="fas fa-crown"></i> {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].value}}
+		</div>
+	</div>
+</div>

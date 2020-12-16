@@ -1,12 +1,23 @@
-<div class="card-number">
-	<span class="lap-number">{{cache.mfl.players[player.id].position}}</span>
-</div>
-<div class="card-info">
-	<div ng-show="showOwner && displayPlayerRosterStatus(player.id)"><strong>{{displayPlayerRosterStatus(player.id)}}</strong></div>
-	{{cache.mfl.players[player.id].name}} {{cache.mfl.players[player.id].team}} {{showBirthdate(cache.mfl.players[player.id].birthdate)}}
-	<div class="card-times">
-		<div>
-			<div class="lap-time">{{cache.dynasty101.players[player.id].tier}} {{cache.dynasty101.players[player.id].value}}</div>
+<div class="card left-nav-lap">
+	<div class="card-number">
+		<span class="lap-number">{{cache.mfl.players[player.id].position}}</span>
+	</div>
+	<div class="card-info">
+		<div ng-show="showOwner && displayPlayerRosterStatus(player.id)">
+			<strong>{{displayPlayerRosterStatus(player.id)}}</strong>
 		</div>
+		<div>
+			{{cache.mfl.players[player.id].name}} {{cache.mfl.players[player.id].team}}
+		</div>
+		<div class="small">
+			{{showBirthdate(cache.mfl.players[player.id].birthdate)}}
+		</div>
+		<div class="small color-red">
+			{{injuriesById[player.id].status}}
+		</div>
+	</div>
+	<div>
+		<div class="lap-time"><i class="fas fa-crown"></i> {{cache.dynasty101.players[player.id].tier}} {{cache.dynasty101.players[player.id].value}}</div>
+		<div class="lap-time"><i class="fas fa-calendar-week"></i> {{displayProjectedScore(projectedScoresById[player.id].score)}}</div>
 	</div>
 </div>

@@ -349,6 +349,15 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		return twoQb;
 	};
 
+	loadAllInjuries = function(){
+		$rootScope.injuriesById = {};
+		mflExport("injuries", $rootScope.mflCookies, "allInjuries", $scope.league).then(function(){
+			$.each($scope.allInjuries.injuries.injury, function(index, injury){
+				$rootScope.injuriesById[injury.id] = injury;
+			});
+		});
+	};
+
 	mflExport = function(type, mflCookies, saveTo, league, otherParams, method, saveToTwo){
 		return new Promise(function(resolve, reject){
 			var body = {

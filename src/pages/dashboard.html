@@ -29,27 +29,17 @@
 			<div class="row">
 				<div class="col-md-3 scroll">
 					<h3>Studs</h3>
-					<div class="card left-nav-lap" ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
+					<span ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
 						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
-					</div>
+					</span>
 					<h3>Stash</h3>
-					<div class="card left-nav-lap" ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
+					<span ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
 						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
-					</div>
+					</span>
 					<h3>Picks</h3>
-					<div class="card left-nav-lap" ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
-						<div class="card-number">
-							<span class="lap-number">{{estimatedPick(draftPick.description)}}</span>
-						</div>
-						<div class="card-info">
-							{{draftPick.description}}
-							<div class="card-times">
-								<div>
-									<div class="lap-time">{{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].value}}</div>
-								</div>
-							</div>
-						</div>
-					</div>
+					<span ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
+						<span ng-include="'pages/pick-card.html'"></span>
+					</span>
 				</div>
 				<div class="col-md-6 main-area">
 					Lineup | Trade | Waivers
@@ -72,27 +62,17 @@
 						</div>
 						<span ng-show="compareOtherTeamId">
 							<h3>Studs</h3>
-							<div class="card left-nav-lap" ng-repeat="player in leagueAssetsById[compareOtherTeamId].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
+							<span ng-repeat="player in leagueAssetsById[compareOtherTeamId].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
 								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
-							</div>
+							</span>
 							<h3>Stash</h3>
-							<div class="card left-nav-lap" ng-repeat="player in leagueAssetsById[compareOtherTeamId].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
+							<span ng-repeat="player in leagueAssetsById[compareOtherTeamId].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
 								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
-							</div>
+							</span>
 							<h3>Picks</h3>
-							<div class="card" ng-repeat="draftPick in leagueAssetsById[compareOtherTeamId].futureYearDraftPicks.draftPick">
-								<div class="card-number">
-									<span class="lap-number">{{estimatedPick(draftPick.description)}}</span>
-								</div>
-								<div class="card-info">
-									{{draftPick.description}}
-									<div class="card-times">
-										<div>
-											<div class="lap-time">{{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].value}}</div>
-										</div>
-									</div>
-								</div>
-							</div>
+							<span ng-repeat="draftPick in leagueAssetsById[compareOtherTeamId].futureYearDraftPicks.draftPick">
+								<span ng-include="'pages/pick-card.html'"></span>
+							</span>
 						</span>
 					</div>
 					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#player-search-collapse" aria-expanded="false" aria-controls="player-search-collapse" ng-click="playerSearchExpanded = !playerSearchExpanded">
@@ -110,9 +90,9 @@
 								</select>
 							</div>
 						</div>
-						<div class="card left-nav-lap" ng-repeat="player in searchResults | orderBy:orderFunction:true">
+						<span ng-repeat="player in searchResults | orderBy:orderFunction:true">
 							<span ng-include="'pages/player-card.html'" ng-init="showOwner = true"></span>
-						</div>
+						</span>
 					</div>
 					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#watch-list-collapse" aria-expanded="false" aria-controls="watch-list-collapse" ng-click="watchListExpanded = !watchListExpanded">
 						<h4>
@@ -122,9 +102,9 @@
 						</h4>
 					</button> 
 					<div class="collapse" id="watch-list-collapse">
-						<div class="card left-nav-lap" ng-repeat="player in myWatchList.myWatchList.player | orderBy:orderFunction:true">
+						<span ng-repeat="player in myWatchList.myWatchList.player | orderBy:orderFunction:true">
 							<span ng-include="'pages/player-card.html'" ng-init="showOwner = true"></span>
-						</div>
+						</span>
 					</div>
 				</div>
 			</div>
