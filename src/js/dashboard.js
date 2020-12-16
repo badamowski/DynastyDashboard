@@ -70,6 +70,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			spinnerOff();
 			applyScope();
 
+			$.each($scope.leagueAssetsById[$scope.league.franchise_id].futureYearDraftPicks.draftPick, function(index, draftPick){
+				dynasty101PickTradeValue($scope.extractYear(draftPick.description), $scope.estimatedPick(draftPick.description), $scope.leagueInfo).then(function(){
+					applyRootScope();
+				});
+			});
+
 			$.each($scope.leagueAssetsById[$scope.league.franchise_id].players.player, function(index, player){
 				dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
 					applyRootScope();
@@ -105,6 +111,14 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}else{
 			return 0;
 		}
+	};
+
+	$scope.extractYear = function(pickDescription){
+		return pickDescription.split("Year ")[1].split(" ")[0];
+	};
+
+	$scope.dynasty101PickKeyFromMFLPickDescription = function(pickDescription){
+		return dynasty101PickKey($scope.extractYear(pickDescription), $scope.estimatedPick(pickDescription), $scope.leagueInfo.league.franchises.count);
 	};
 
 	$scope.estimatedPick = function(pickDescription){
@@ -186,6 +200,25 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			playerOptions += "<option value='" + key + "'>" + value.name + " " + value.position + " " + value.team + "</option>";
 		});
 
+		/*var round = 1;
+		for (round = 1; round <= 5; round++) {
+			var pick;
+			for (pick = 1; pick <= 12; pick++) {
+				var dynasty101PickName = dynasty101PickName("2021", round.toString() + "." + pick.toString(), 12);
+				playerOptions += "<option value='" + dynasty101PickName.replace(" ", "") + "'>" + dynasty101PickName + "</option>";
+			}
+		}
+
+		round = 1;
+		for (round = 1; round <= 5; round++) {
+			var earlyDynasty101PickName = dynasty101PickName("2022", round.toString() + ".1", 12),
+				midDynasty101PickName = dynasty101PickName("2022", round.toString() + ".6", 12),
+				lateDynasty101PickName = dynasty101PickName("2022", round.toString() + ".12", 12);
+			playerOptions += "<option value='" + earlyDynasty101PickName.replace(" ", "") + "'>" + earlyDynasty101PickName + "</option>";
+			playerOptions += "<option value='" + midDynasty101PickName.replace(" ", "") + "'>" + midDynasty101PickName + "</option>";
+			playerOptions += "<option value='" + lateDynasty101PickName.replace(" ", "") + "'>" + lateDynasty101PickName + "</option>";
+		}*/
+
 		$("#playerSelect").empty().html(playerOptions);
 		$("#playerSelect").select2({
 			allowClear: true,
@@ -211,9 +244,13 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 				if(playerIdList){
 					mflExport("playerRosterStatus", $rootScope.mflCookies, "searchPlayerRosterStatus", $scope.league, "PLAYERS=" + playerIdList).then(function(){
-						$.each($scope.searchPlayerRosterStatus.playerRosterStatuses.playerStatus, function(index, playerStatus){
-							$scope.playerRosterStatus[playerStatus.id] = playerStatus;
-						});
+						if(Array.isArray($scope.searchPlayerRosterStatus.playerRosterStatuses.playerStatus)){
+							$.each($scope.searchPlayerRosterStatus.playerRosterStatuses.playerStatus, function(index, playerStatus){
+								$scope.playerRosterStatus[playerStatus.id] = playerStatus;
+							});
+						}else{
+							$scope.playerRosterStatus[$scope.searchPlayerRosterStatus.playerRosterStatuses.playerStatus.id] = $scope.searchPlayerRosterStatus.playerRosterStatuses.playerStatus;
+						}
 						applyScope();
 					});
 				}else{

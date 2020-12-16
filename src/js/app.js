@@ -158,43 +158,56 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 	dynasty101PickTradeValue = function(year, estimatedPick, leagueInfo){
 		return new Promise(function(resolve, reject){
 			var pickName = dynasty101PickName(year, estimatedPick, leagueInfo.league.franchises.count),
-				pickKey = pickName.replaceAll(" ", "");
+				pickKey = dynasty101PickKey(year, estimatedPick, leagueInfo.league.franchises.count);
 			if(pickName){
-				dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).once("value", function(data){
-					var cachedPickData = data.val();
-					if(cachedPickData){
-						$rootScope.cache.dynasty101.picks[pickKey] = cachedPickData;
-						resolve();
-					}else{
-						var body = {
-							info: pickName,
-							QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
-						};
+				if($rootScope.cache.dynasty101.picks[pickKey] && $rootScope.cache.dynasty101.picks[pickKey].value){
+					resolve();
+				}else{
+					dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).once("value", function(data){
+						var cachedPickData = data.val();
+						if(cachedPickData && cachedPickData.lastUpdated && moment(cachedPickData.lastUpdated, utcDateFormat).isSame(moment(), "day")){
+							$rootScope.cache.dynasty101.picks[pickKey] = cachedPickData;
+							resolve();
+						}else{
+							var body = {
+								info: pickName,
+								QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+							};
 
-						$.ajax({
-							url: "/.netlify/functions/dynasty-101-value",
-							type: "POST",
-							data: JSON.stringify(body),
-							contentType:"application/json",
-							dataType:"json",
-							success: function(data){
-								$rootScope.cache.dynasty101.picks[pickKey] = {
-									pickName: pickName,
-									value: data.value
-									tier: data.tier,
-									lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
-								};
-								dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).update($rootScope.cache.dynasty101.picks[pickKey]).then(function(){
-									resolve();
-								});
-							}
-						});
-					}
-				});
+							$.ajax({
+								url: "/.netlify/functions/dynasty-101-value",
+								type: "POST",
+								data: JSON.stringify(body),
+								contentType:"application/json",
+								dataType:"json",
+								success: function(data){
+									$rootScope.cache.dynasty101.picks[pickKey] = {
+										pickName: pickName,
+										value: data.value,
+										tier: data.tier,
+										lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
+									};
+									dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).update($rootScope.cache.dynasty101.picks[pickKey]).then(function(){
+										resolve();
+									});
+								}
+							});
+						}
+					});
+				}
 			}else{
 				resolve();
 			}
 		});
+	};
+
+	dynasty101PickKey = function(year, estimatedPick, teamCount){
+		var pickName = dynasty101PickName(year, estimatedPick, teamCount);
+		if(pickName){
+			return pickName.replaceAll(" ", "");
+		}else{
+			return "";
+		}
 	};
 
 	dynasty101PickName = function(year, estimatedPick, teamCount){
@@ -229,7 +242,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 				pickString = "Late ";
 			}
 
-			return "2022 " pickString + roundString;
+			return "2022 " + pickString + roundString;
 		}else{
 			return false;
 		}
@@ -239,7 +252,9 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		return new Promise(function(resolve, reject){
 			findDynasty101Player(player).then(function(){
 				if($rootScope.cache.dynasty101.players[player.id]){
-					if($rootScope.cache.dynasty101.players[player.id].value){
+					if($rootScope.cache.dynasty101.players[player.id].value 
+						&& $rootScope.cache.dynasty101.players[player.id].lastUpdated
+						&& moment($rootScope.cache.dynasty101.players[player.id].lastUpdated, utcDateFormat).isSame(moment(), "day")){
 						resolve();
 					}else{
 						var body = {

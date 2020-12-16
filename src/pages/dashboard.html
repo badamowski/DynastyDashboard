@@ -28,7 +28,7 @@
 		<span ng-show="league">
 			<div class="row">
 				<div class="col-md-12">
-					<h1>{{teamRankById[league.franchise_id]}} {{leagueInfoById[league.franchise_id].name}} ({{leagueStandingsById[league.franchise_id].h2hw}}-{{leagueStandingsById[league.franchise_id].h2hl}}-{{leagueStandingsById[league.franchise_id].h2ht}})</h1>
+					<h1>{{leagueInfoById[league.franchise_id].name}} ({{leagueStandingsById[league.franchise_id].h2hw}}-{{leagueStandingsById[league.franchise_id].h2hl}}-{{leagueStandingsById[league.franchise_id].h2ht}})</h1>
 				</div>
 			</div>
 			<div class="row">
@@ -52,6 +52,11 @@
 						</div>
 						<div class="card-info">
 							{{draftPick.description}}
+							<div class="card-times">
+								<div>
+									<div class="lap-time">{{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].value}}</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
