@@ -281,7 +281,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 				}else{
 					$rootScope.cache.dynasty101.players[player.id] = {
 						value: "0",
-						tier: "?"
+						tier: "T11"
 					}
 					resolve();
 				}
@@ -294,7 +294,10 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 			if(!$rootScope.cache.dynasty101.players[player.id]){
 				dynastyDashboardDatabase.ref("cache/dynasty101/players/" + player.id).once("value", function(data){
 					var dynasty101Player = data.val();
-					if(dynasty101Player){
+					if(dynasty101Player 
+						&& (!dynasty101Player.error 
+							|| (dynasty101Player.lastUpdated 
+								&& moment(dynasty101Player.lastUpdated, utcDateFormat).isSame(moment(), "day")))){
 						$rootScope.cache.dynasty101.players[player.id] = dynasty101Player;
 						resolve();
 					}else{
@@ -315,9 +318,17 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 									resolve();
 								});
 							}, error: function(error){
-								console.log("unable to find " + player.name + " in Dynasty 101. MFL Id: " + player.id);
+								console.error("unable to find " + player.name + " in Dynasty 101. MFL Id: " + player.id);
 								console.error(error);
-								resolve();
+								$rootScope.cache.dynasty101.players[player.id] = {
+									error: true,
+									lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat),
+									value: "0",
+									tier: "T11"
+								};
+								dynastyDashboardDatabase.ref("cache/dynasty101/players/" + player.id).update($rootScope.cache.dynasty101.players[player.id]).then(function(){
+									resolve();
+								});
 							}
 						});
 					}

@@ -12,7 +12,6 @@ netlify dev
 MFL Doc: https://www63.myfantasyleague.com/2020/api_info?STATE=test&CCAT=export&TYPE=players&L=24385
 
 BUGS:
-* Should only call Dynasty 101 once if an error occurs... Update cache with hardcoded value and tier 
 
 MAJOR FEATURES:
 * Trade
