@@ -4,6 +4,9 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		studTiers = ["T1", "T2", "T3", "T4", "T5"];
 
 	$scope.searchResults = [];
+	$scope.playerSearchExpanded = false;
+	$scope.watchListExpanded = false;
+	$scope.otherTeamsExpanded = false;
 
 	$scope.init = function(){
 		initialLoad = true;
@@ -72,38 +75,11 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			spinnerOff();
 			applyScope();
 
-			$.each($scope.leagueAssetsById[$scope.league.franchise_id].futureYearDraftPicks.draftPick, function(index, draftPick){
-				dynasty101PickTradeValue($scope.extractYear(draftPick.description), $scope.estimatedPick(draftPick.description), $scope.leagueInfo).then(function(){
-					applyRootScope();
-				});
-			});
+			loadFranchise($scope.league.franchise_id);
 
-			$.each($scope.leagueAssetsById[$scope.league.franchise_id].players.player, function(index, player){
-				dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
-					applyRootScope();
-				});
-			});
-
-			var watchListPlayerIds = "";
-			$.each($scope.myWatchList.myWatchList.player, function(index, player){
-				if(!$scope.playerRosterStatus[player.id]){
-					watchListPlayerIds += player.id + ",";
-				}
-				dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
-					applyRootScope();
-				});
-			});
-			if(watchListPlayerIds){
-				mflExport("playerRosterStatus", $rootScope.mflCookies, "watchPlayerRosterStatus", $scope.league, "PLAYERS=" + watchListPlayerIds).then(function(){
-					$.each($scope.watchPlayerRosterStatus.playerRosterStatuses.playerStatus, function(index, playerStatus){
-						$scope.playerRosterStatus[playerStatus.id] = playerStatus;
-					});
-				});
-			}else{
-				applyScope();
-			}
-
+			loadWatchList();
 			buildPlayerSelect();
+			buildOtherTeamSelect();
 		});
 	};
 
@@ -173,6 +149,41 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}
 	};
 
+	loadWatchList = function(){
+		var watchListPlayerIds = "";
+		$.each($scope.myWatchList.myWatchList.player, function(index, player){
+			if(!$scope.playerRosterStatus[player.id]){
+				watchListPlayerIds += player.id + ",";
+			}
+			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
+				applyRootScope();
+			});
+		});
+		if(watchListPlayerIds){
+			mflExport("playerRosterStatus", $rootScope.mflCookies, "watchPlayerRosterStatus", $scope.league, "PLAYERS=" + watchListPlayerIds).then(function(){
+				$.each($scope.watchPlayerRosterStatus.playerRosterStatuses.playerStatus, function(index, playerStatus){
+					$scope.playerRosterStatus[playerStatus.id] = playerStatus;
+				});
+			});
+		}else{
+			applyScope();
+		}
+	};
+
+	loadFranchise = function(franchiseId){
+		$.each($scope.leagueAssetsById[franchiseId].futureYearDraftPicks.draftPick, function(index, draftPick){
+			dynasty101PickTradeValue($scope.extractYear(draftPick.description), $scope.estimatedPick(draftPick.description), $scope.leagueInfo).then(function(){
+				applyRootScope();
+			});
+		});
+
+		$.each($scope.leagueAssetsById[franchiseId].players.player, function(index, player){
+			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
+				applyRootScope();
+			});
+		});
+	};
+
 	buildLeagueSelect = function(){
 		var leagueOptions = "<option></option>";
 
@@ -192,6 +203,34 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			}else{
 				initialLoad = false;
 			}
+		});
+	};
+
+	buildOtherTeamSelect = function(){
+		var teamOptions = "<option></option>";
+
+		$.each($scope.leagueInfo.league.franchises.franchise, function(index, franchise){	
+			if(franchise.id != $scope.league.franchise_id){
+				teamOptions += "<option value='" + franchise.id + "'>" + franchise.name + "</option>";
+			}
+		});
+
+		$("#otherTeamSelect").empty().html(teamOptions);
+		$("#otherTeamSelect").select2({
+			allowClear: true,
+			theme: "material"
+		});
+
+		$("#otherTeamSelect").change(function(event){
+			var value = $("#otherTeamSelect").select2('data');
+			$scope.searchResults = [];
+			if(value && value.length > 0){
+				$scope.compareOtherTeamId = value[0].id;
+				loadFranchise(value[0].id);
+			}else{
+				$scope.compareOtherTeamId = undefined;
+			}
+			applyScope();
 		});
 	};
 

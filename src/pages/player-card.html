@@ -2,7 +2,7 @@
 	<span class="lap-number">{{cache.mfl.players[player.id].position}}</span>
 </div>
 <div class="card-info">
-	<div ng-show="displayPlayerRosterStatus(player.id)"><strong>{{displayPlayerRosterStatus(player.id)}}</strong></div>
+	<div ng-show="showOwner && displayPlayerRosterStatus(player.id)"><strong>{{displayPlayerRosterStatus(player.id)}}</strong></div>
 	{{cache.mfl.players[player.id].name}} {{cache.mfl.players[player.id].team}} {{showBirthdate(cache.mfl.players[player.id].birthdate)}}
 	<div class="card-times">
 		<div>

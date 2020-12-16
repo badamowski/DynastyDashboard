@@ -12,10 +12,16 @@ netlify dev
 MFL Doc: https://www63.myfantasyleague.com/2020/api_info?STATE=test&CCAT=export&TYPE=players&L=24385
 
 BUGS:
+* Should only call Dynasty 101 once if an error occurs... Update cache with hardcoded value and tier 
 
-FEATURES:
-* Lineup - Trade - Waiver
-* Right side - Include other teams in league
+MAJOR FEATURES:
+* Trade
+* Waiver
+* Draft
+* Lineup
+* Usage without login
+
+SMALL ENHANCEMENTS
 * Tagging of players with 1:many tags
 * More data
 ** Roster vs IR spot: https://www63.myfantasyleague.com/2020/export?TYPE=rosters&L=24385&APIKEY=&FRANCHISE=&W=&JSON=1
@@ -27,5 +33,4 @@ FEATURES:
 ** Weekly
 ** Rest of Season
 ** Dynasty
-* More organization - what columns? Static or Dynamic?
-* Starting lineup - Drag and Drop
+* Include picks in generic player search for compare - most valuable for use without login
