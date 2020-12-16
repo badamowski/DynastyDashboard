@@ -16,7 +16,7 @@
 	<div ng-show="validMflCookies()">
 		<div class="row">
 			<div class="col-md-12">
-				<div class="form-group">
+				<div class="no-margin-top form-group">
 					<label class="control-label" for="leagueSelect">League</label>
 					<div class="flex-import">
 						<select class="form-control" id="leagueSelect" data-placeholder="Select League">
@@ -27,24 +27,15 @@
 		</div>
 		<span ng-show="league">
 			<div class="row">
-				<div class="col-md-12">
-					<h1>{{leagueInfoById[league.franchise_id].name}} ({{leagueStandingsById[league.franchise_id].h2hw}}-{{leagueStandingsById[league.franchise_id].h2hl}}-{{leagueStandingsById[league.franchise_id].h2ht}})</h1>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-3">
+				<div class="col-md-3 scroll">
 					<h3>Studs</h3>
 					<div class="card" ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
 						<span ng-include="'pages/player-card.html'"></span>
 					</div>
-				</div>
-				<div class="col-md-3">
 					<h3>Stash</h3>
 					<div class="card" ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
 						<span ng-include="'pages/player-card.html'"></span>
 					</div>
-				</div>
-				<div class="col-md-3">
 					<h3>Picks</h3>
 					<div class="card" ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
 						<div class="card-number">
@@ -60,7 +51,10 @@
 						</div>
 					</div>
 				</div>
-				<div class="col-md-3">
+				<div class="col-md-6">
+					Lineup | Trade | Waivers
+				</div>
+				<div class="col-md-3 scroll">
 					<h3>Compare</h3>
 					<div class="form-group">
 						<label class="control-label" for="playerSelect">Players</label>

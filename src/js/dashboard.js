@@ -67,6 +67,8 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 				$scope.leagueStandingsById[franchise.id] = franchise;
 			});
 
+			$rootScope.pageTitle = $scope.leagueInfoById[$scope.league.franchise_id].name + " (" + $scope.leagueStandingsById[$scope.league.franchise_id].h2hw + "-" + $scope.leagueStandingsById[$scope.league.franchise_id].h2hl + "-" + $scope.leagueStandingsById[$scope.league.franchise_id].h2ht + ")";
+
 			spinnerOff();
 			applyScope();
 
