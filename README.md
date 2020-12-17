@@ -12,16 +12,15 @@ netlify dev
 MFL Doc: https://www63.myfantasyleague.com/2020/api_info?STATE=test&CCAT=export&TYPE=players&L=24385
 
 BUGS:
-* Trade Analysis can show multiple teams and/or free agents - need more validation!
 
 MAJOR FEATURES:
-* Trade - in-progress
-* Waiver
 * Draft
 * Lineup
 * Usage without login
 
 SMALL ENHANCEMENTS
+* Sort
+* Group Titles
 * Tagging of players with 1:many tags
 * More data
 ** Roster vs IR spot: https://www63.myfantasyleague.com/2020/export?TYPE=rosters&L=24385&APIKEY=&FRANCHISE=&W=&JSON=1

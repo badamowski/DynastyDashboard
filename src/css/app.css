@@ -219,7 +219,7 @@ body,h1,h2,h3,h4,h5 {
   font-size: 100%;
 }
 
-.page-title {
+.page-title, .text-align-center {
   text-align: center;
 }
 

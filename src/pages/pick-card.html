@@ -1,28 +1,31 @@
-<div class="card left-nav-lap" ng-class="isSelectedPick(draftPick, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(draftPick.description))">
+<div class="card left-nav-lap" ng-class="isSelectedAsset(asset, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(asset.description))">
 	<div class="card-number">
-		<span class="lap-number">{{estimatedPick(draftPick.description)}}</span>
+		<span class="lap-number">{{estimatedPick(asset.description)}}</span>
 	</div>
 	<div class="card-info">
+		<div ng-show="shouldDisplayPlayerRosterStatus(asset.id, type)">
+			<strong>{{displayPlayerRosterStatus(asset.id)}}</strong>
+		</div>
 		<div>
-			<strong>{{extractYear(draftPick.description)}} Round {{extractRound(draftPick.description)}}</strong>
+			<strong>{{extractYear(asset.description)}} Round {{extractRound(asset.description)}}</strong>
 		</div>
 		<div class="small">
-			{{extractTeam(draftPick.description)}}
+			{{extractTeam(asset.description)}}
 		</div>
 	</div>
 	<div>
 		<div class="lap-time">
-			<i class="fas fa-crown"></i> {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(draftPick.description)].value}}
+			<i class="fas fa-crown"></i> {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(asset.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(asset.description)].value}}
 		</div>
 	</div>
 	<div class="card-icon">
 		<div class="dropdown">
-			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(draftPick.description))" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
-			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-pick-{{dynasty101PickKeyFromMFLPickDescription(draftPick.description)}}">
+			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(asset.description))" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
+			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-pick-{{dynasty101PickKeyFromMFLPickDescription(asset.description)}}">
 				<li class="width-100 lap-menu-item">
-					<a class="lap-menu-link width-100" href="#" ng-click="selectPickKebab(draftPick, $event, 'dropdown-' + type + '-pick-' + ynasty101PickKeyFromMFLPickDescription(draftPick.description), type)">
-						<span ng-show="canSelectPick(draftPick, type)"><i class="fas fa-chart-area"></i> Analyze</span>
-						<span ng-show="canUnSelectPick(draftPick, type)"><i class="fas fa-times"></i> Deselect</span>
+					<a class="lap-menu-link width-100" href="#" ng-click="selectAssetKebab(asset, $event, 'dropdown-' + type + '-pick-' + ynasty101PickKeyFromMFLPickDescription(asset.description), type)">
+						<span ng-show="canSelectAsset(asset, type)"><i class="fas fa-chart-area"></i> Compare</span>
+						<span ng-show="canUnSelectAsset(asset, type)"><i class="fas fa-times"></i> Deselect</span>
 					</a>
 				</li>
 			</ul>
