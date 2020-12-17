@@ -53,15 +53,14 @@
 		    
 			<ul class="link nav navbar-nav navbar-right">
 				<li>
-					Right Nav
-				</li>
-				<li>
 					<a href="#" ng-hide="user" ng-click="login($event)">
-						<i class="fas fa-user"></i> Login
+						<i class="fas fa-user"></i> Dynasty Dashboard Login
 					</a>
-					<a href="#/dashboard" ng-show="user">
-						<i class="fas fa-user"></i> {{user.displayName}}
-					</a>
+					<div ng-hide="!user || validMflCookies()">
+						<input class="form-control" id="mflUsername" type="text" placeholder="MFL Username">
+						<input class="form-control" id="mflPassword" type="password" placeholder="MFL Password">
+						<button class="btn btn-success" ng-click="mflLogin()">Link MFL Account</button>
+					</div>
 				</li>
 				<li>
 					<a href="#" ng-show="user" ng-click="logout($event)">

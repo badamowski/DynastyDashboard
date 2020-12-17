@@ -16,11 +16,13 @@ BUGS:
 MAJOR FEATURES:
 * Draft
 * Lineup
-* Usage without login
 
 SMALL ENHANCEMENTS
 * Sort
 * Group Titles
+* No login features
+** Include picks in generic player search for compare
+** Better viewing of all players? Search seems like a lot of clicks. Load top 100?
 * Tagging of players with 1:many tags
 * More data
 ** Roster vs IR spot: https://www63.myfantasyleague.com/2020/export?TYPE=rosters&L=24385&APIKEY=&FRANCHISE=&W=&JSON=1
@@ -30,4 +32,3 @@ SMALL ENHANCEMENTS
 ** Weekly
 ** Rest of Season
 ** Dynasty
-* Include picks in generic player search for compare - most valuable for use without login

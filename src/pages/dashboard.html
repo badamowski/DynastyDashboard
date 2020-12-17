@@ -1,161 +1,161 @@
 <div ng-init="init()">
-	<div ng-hide="user">
-		Need to login!
-	</div>
-	<div ng-hide="validMflCookies()">
-		<div class="form-group">
-			<label class="control-label" for="mflUsername">MFL Username</label>
-			<input class="form-control" id="mflUsername" type="text">
+	<div class="row" ng-show="validMflCookies()">
+		<div class="col-md-12">
+			<div class="no-margin-top form-group">
+				<label class="control-label" for="leagueSelect">League</label>
+				<div class="flex-import">
+					<select class="form-control" id="leagueSelect" data-placeholder="Select League">
+					</select>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			<label class="control-label" for="mflPassword">MFL Password</label>
-			<input class="form-control" id="mflPassword" type="password">
-		</div>
-		<button class="btn btn-success" ng-click="mflLogin()">Link MFL Account</button>
 	</div>
-	<div ng-show="validMflCookies()">
-		<div class="row">
-			<div class="col-md-12">
+	<div class="row">
+		<div class="col-md-3 scroll">
+			<span ng-show="validMflCookies() && league">
+				<span ng-repeat="asset in fullAssetListById[league.franchise_id] | orderBy:orderFunction:true">
+					<span ng-hide="asset.isPick">
+						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left'"></span>
+					</span>
+					<span ng-show="asset.isPick">
+						<span ng-include="'pages/pick-card.html'" ng-init="type = 'left'"></span>
+					</span>
+				</span>
+			</span>
+			<div ng-hide="validMflCookies() && league">
 				<div class="no-margin-top form-group">
-					<label class="control-label" for="leagueSelect">League</label>
+					<label class="control-label" for="leftplayerSelect">Players</label>
 					<div class="flex-import">
-						<select class="form-control" id="leagueSelect" data-placeholder="Select League">
+						<select class="form-control" id="leftplayerSelect" multiple="multiple" data-placeholder="Select Players">
 						</select>
 					</div>
 				</div>
+				<span ng-repeat="asset in leftsearchResults | orderBy:orderFunction:true">
+					<span ng-include="'pages/player-card.html'" ng-init="type = 'left-search'"></span>
+				</span>
 			</div>
 		</div>
-		<span ng-show="league">
+		<div class="col-md-6 main-area">
 			<div class="row">
-				<div class="col-md-3 scroll">
-					<span ng-repeat="asset in fullAssetListById[league.franchise_id] | orderBy:orderFunction:true">
+				<div class="col-md-12">
+					<h3 class="text-align-center">Compare</h3>
+				</div>
+			</div>
+			<div class="row" ng-show="leftSelectedPlayers.length > 0 || rightSelectedPlayers.length > 0">
+				<div class="col-md-6">
+					<div>
+						<h4 class="text-right"><i class="fas fa-crown"></i> {{leftValueSum()}}</h4>
+					</div>
+					<div>
+						<h4 class="text-right"><i class="fas fa-calendar-week"></i> {{leftProjectedSum()}}</h4>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div>
+						<h4>{{rightValueSum()}} <i class="fas fa-crown"></i></h4>
+					</div>
+					<div>
+						<h4>{{rightProjectedSum()}} <i class="fas fa-calendar-week"></i></h4>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="text-right" ng-show="leftTitle()">
+						<strong>{{leftTitle()}} <i class="fas fa-arrow-right"></i></strong>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div ng-show="rightTitle()">
+						<strong><i class="fas fa-arrow-left"></i> {{rightTitle()}}</strong>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<span ng-repeat="asset in leftSelectedPlayers | orderBy:orderFunction:true">
 						<span ng-hide="asset.isPick">
-							<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left'"></span>
+							<span ng-include="'pages/player-card.html'" ng-init="type = 'left-select'"></span>
 						</span>
 						<span ng-show="asset.isPick">
-							<span ng-include="'pages/pick-card.html'" ng-init="type = 'left'"></span>
+							<span ng-include="'pages/pick-card.html'" ng-init="type = 'left-select'"></span>
 						</span>
 					</span>
 				</div>
-				<div class="col-md-6 main-area">
-					<div class="row">
-						<div class="col-md-12">
-							<h3 class="text-align-center">Compare</h3>
-						</div>
-					</div>
-					<div class="row" ng-show="leftSelectedPlayers.length > 0 || rightSelectedPlayers.length > 0">
-						<div class="col-md-6">
-							<div>
-								<h4 class="text-right"><i class="fas fa-crown"></i> {{leftValueSum()}}</h4>
-							</div>
-							<div>
-								<h4 class="text-right"><i class="fas fa-calendar-week"></i> {{leftProjectedSum()}}</h4>
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div>
-								<h4>{{rightValueSum()}} <i class="fas fa-crown"></i></h4>
-							</div>
-							<div>
-								<h4>{{rightProjectedSum()}} <i class="fas fa-calendar-week"></i></h4>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-md-6">
-							<div class="text-right" ng-show="leftTitle()">
-								<strong>{{leftTitle()}} <i class="fas fa-arrow-right"></i></strong>
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div ng-show="rightTitle()">
-								<strong><i class="fas fa-arrow-left"></i> {{rightTitle()}}</strong>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-md-6">
-							<span ng-repeat="asset in leftSelectedPlayers | orderBy:orderFunction:true">
-								<span ng-hide="asset.isPick">
-									<span ng-include="'pages/player-card.html'" ng-init="type = 'left-select'"></span>
-								</span>
-								<span ng-show="asset.isPick">
-									<span ng-include="'pages/pick-card.html'" ng-init="type = 'left-select'"></span>
-								</span>
-							</span>
-						</div>
-						<div class="col-md-6">
-							<span ng-repeat="asset in rightSelectedPlayers | orderBy:orderFunction:true">
-								<span ng-hide="asset.isPick">
-									<span ng-include="'pages/player-card.html'" ng-init="type = 'right-select'"></span>
-								</span>
-								<span ng-show="asset.isPick">
-									<span ng-include="'pages/pick-card.html'" ng-init="type = 'right-select'"></span>
-								</span>
-							</span>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3 scroll">
-					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#other-teams-collapse" aria-expanded="false" aria-controls="other-teams-collapse" ng-click="otherTeamsExpanded = !otherTeamsExpanded">
-						<h4>
-							<i class="fas fa-plus-square" ng-hide="otherTeamsExpanded"></i>
-							<i class="fas fa-minus-square" ng-show="otherTeamsExpanded"></i>
-							<span class="color-grey text-larger">Other Teams</span>
-						</h4>
-					</button> 
-					<div class="collapse" id="other-teams-collapse">
-						<div class="no-margin-top form-group">
-							<label class="control-label" for="otherTeamSelect">Teams</label>
-							<div class="flex-import">
-								<select class="form-control" id="otherTeamSelect" data-placeholder="Select Team">
-								</select>
-							</div>
-						</div>
-						<span ng-show="compareOtherTeamId">
-							<span ng-repeat="asset in fullAssetListById[compareOtherTeamId] | orderBy:orderFunction:true">
-								<span ng-hide="asset.isPick">
-									<span ng-include="'pages/player-card.html'" ng-init="type = 'other'"></span>
-								</span>
-								<span ng-show="asset.isPick">
-									<span ng-include="'pages/pick-card.html'" ng-init="type = 'other'"></span>
-								</span>
-							</span>
+				<div class="col-md-6">
+					<span ng-repeat="asset in rightSelectedPlayers | orderBy:orderFunction:true">
+						<span ng-hide="asset.isPick">
+							<span ng-include="'pages/player-card.html'" ng-init="type = 'right-select'"></span>
 						</span>
-					</div>
-					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#player-search-collapse" aria-expanded="false" aria-controls="player-search-collapse" ng-click="playerSearchExpanded = !playerSearchExpanded">
-						<h4>
-							<i class="fas fa-plus-square" ng-hide="playerSearchExpanded"></i>
-							<i class="fas fa-minus-square" ng-show="playerSearchExpanded"></i>
-							<span class="color-grey text-larger">Player Search</span>
-						</h4>
-					</button> 
-					<div class="collapse" id="player-search-collapse">
-						<div class="no-margin-top form-group">
-							<label class="control-label" for="playerSelect">Players</label>
-							<div class="flex-import">
-								<select class="form-control" id="playerSelect" multiple="multiple" data-placeholder="Select Players">
-								</select>
-							</div>
-						</div>
-						<span ng-repeat="asset in searchResults | orderBy:orderFunction:true">
-							<span ng-include="'pages/player-card.html'" ng-init="type = 'search'"></span>
+						<span ng-show="asset.isPick">
+							<span ng-include="'pages/pick-card.html'" ng-init="type = 'right-select'"></span>
 						</span>
-					</div>
-					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#watch-list-collapse" aria-expanded="false" aria-controls="watch-list-collapse" ng-click="watchListExpanded = !watchListExpanded">
-						<h4>
-							<i class="fas fa-plus-square" ng-hide="watchListExpanded"></i>
-							<i class="fas fa-minus-square" ng-show="watchListExpanded"></i>
-							<span class="color-grey text-larger">My Watch List</span>
-						</h4>
-					</button> 
-					<div class="collapse" id="watch-list-collapse">
-						<span ng-repeat="asset in myWatchList.myWatchList.player | orderBy:orderFunction:true">
-							<span ng-include="'pages/player-card.html'" ng-init="type = 'watch'"></span>
-						</span>
-					</div>
+					</span>
 				</div>
 			</div>
-		</span>
+		</div>
+		<div class="col-md-3 scroll">
+			<span ng-show="validMflCookies() && league">
+				<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#other-teams-collapse" aria-expanded="false" aria-controls="other-teams-collapse" ng-click="otherTeamsExpanded = !otherTeamsExpanded">
+					<h4>
+						<i class="fas fa-plus-square" ng-hide="otherTeamsExpanded"></i>
+						<i class="fas fa-minus-square" ng-show="otherTeamsExpanded"></i>
+						<span class="color-grey text-larger">Other Teams</span>
+					</h4>
+				</button> 
+				<div class="collapse" id="other-teams-collapse">
+					<div class="no-margin-top form-group">
+						<label class="control-label" for="otherTeamSelect">Teams</label>
+						<div class="flex-import">
+							<select class="form-control" id="otherTeamSelect" data-placeholder="Select Team">
+							</select>
+						</div>
+					</div>
+					<span ng-show="compareOtherTeamId">
+						<span ng-repeat="asset in fullAssetListById[compareOtherTeamId] | orderBy:orderFunction:true">
+							<span ng-hide="asset.isPick">
+								<span ng-include="'pages/player-card.html'" ng-init="type = 'other'"></span>
+							</span>
+							<span ng-show="asset.isPick">
+								<span ng-include="'pages/pick-card.html'" ng-init="type = 'other'"></span>
+							</span>
+						</span>
+					</span>
+				</div>
+			</span>
+			<button ng-show="validMflCookies() && league" class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#player-search-collapse" aria-expanded="false" aria-controls="player-search-collapse" ng-click="playerSearchExpanded = !playerSearchExpanded">
+				<h4>
+					<i class="fas fa-plus-square" ng-hide="playerSearchExpanded"></i>
+					<i class="fas fa-minus-square" ng-show="playerSearchExpanded"></i>
+					<span class="color-grey text-larger">Player Search</span>
+				</h4>
+			</button> 
+			<div ng-class="showPlayerSearch(validMflCookies() && league)" id="player-search-collapse">
+				<div class="no-margin-top form-group">
+					<label class="control-label" for="playerSelect">Players</label>
+					<div class="flex-import">
+						<select class="form-control" id="playerSelect" multiple="multiple" data-placeholder="Select Players">
+						</select>
+					</div>
+				</div>
+				<span ng-repeat="asset in searchResults | orderBy:orderFunction:true">
+					<span ng-include="'pages/player-card.html'" ng-init="type = 'search'"></span>
+				</span>
+			</div>
+			<span ng-show="validMflCookies() && league">
+				<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#watch-list-collapse" aria-expanded="false" aria-controls="watch-list-collapse" ng-click="watchListExpanded = !watchListExpanded">
+					<h4>
+						<i class="fas fa-plus-square" ng-hide="watchListExpanded"></i>
+						<i class="fas fa-minus-square" ng-show="watchListExpanded"></i>
+						<span class="color-grey text-larger">My Watch List</span>
+					</h4>
+				</button> 
+				<div class="collapse" id="watch-list-collapse">
+					<span ng-repeat="asset in myWatchList.myWatchList.player | orderBy:orderFunction:true">
+						<span ng-include="'pages/player-card.html'" ng-init="type = 'watch'"></span>
+					</span>
+				</div>
+			</span>
+		</div>
 	</div>
 </div>

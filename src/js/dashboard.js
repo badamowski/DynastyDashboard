@@ -21,17 +21,45 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 								$("#leagueSelect").val(Object.keys($scope.mflLeagues.leagues)[0]).prop("disabled", true).trigger("change");
 								$scope.loadLeague(Object.values($scope.mflLeagues.leagues)[0]);
 							}else{
-								spinnerOff();
-								applyScope();
+								loadNonLoggedInView();
 							}
 						});
 					}else{
-						spinnerOff();
-						applyScope();
+						loadNonLoggedInView();
 					}
 				});
+			}else{
+				loadNonLoggedInView();
 			}
 		});
+	};
+
+	loadNonLoggedInView = function(){
+		loadAllPlayers().then(function(){
+			$scope.playerSearchExpanded = true;
+			$scope.leftSelectedPlayers = [];
+			$scope.rightSelectedPlayers = [];
+			$scope.leagueInfo = {
+				league: {
+					franchises: {
+						count: 12
+					},
+					starters: {
+						position: [
+							{
+								name: "QB",
+								limit: "1"
+							}
+						]
+					}
+				}
+			};
+
+			buildPlayerSelect("");
+			buildPlayerSelect("left");
+			spinnerOff();
+			applyScope();
+		});	
 	};
 
 	$scope.loadLeague = function(league){
@@ -46,8 +74,6 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		$scope.franchiseIdByAssetId = {};
 		$scope.leftSelectedPlayers = [];
 		$scope.rightSelectedPlayers = [];
-		$scope.leftSelectedPicks = [];
-		$scope.rightSelectedPicks = [];
 
 		var allPromises = [];
 
@@ -103,9 +129,17 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			loadFranchise($scope.league.franchise_id);
 
 			loadWatchList();
-			buildPlayerSelect();
+			buildPlayerSelect("");
 			buildOtherTeamSelect();
 		});
+	};
+
+	$scope.showPlayerSearch = function(hasMFLUser){
+		if(hasMFLUser){
+			return "collapse";
+		}else{
+			return "";
+		}
 	};
 
 	$scope.orderFunction = function(asset){
@@ -155,15 +189,6 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}
 	};
 
-	$scope.mflLogin = function(){
-		var mflUsername = $("#mflUsername").val();
-		var mflPassword = $("#mflPassword").val();
-
-		doMflLogin(mflUsername, mflPassword).then(function(){
-			$scope.init();
-		});
-	};
-
 	$scope.displayProjectedScore = function(projectedScore){
 		if(projectedScore){
 			return projectedScore;
@@ -193,6 +218,9 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	$scope.displayPlayerRosterStatus = function(playerId){
+		if(!$scope.league){
+			return "";
+		}
 		if($scope.franchiseIdByAssetId && $scope.franchiseIdByAssetId[playerId]){
 			return $scope.leagueInfoById[$scope.franchiseIdByAssetId[playerId]].name;
 		}else{
@@ -273,7 +301,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	determineTitle = function(isLeft, selectAssetList){
-		if(selectAssetList && selectAssetList.length > 0){
+		if($scope.user && $scope.league && selectAssetList && selectAssetList.length > 0){
 			if(isLeft){
 				return $scope.leagueInfoById[$scope.league.franchise_id].name;
 			}else{
@@ -439,7 +467,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		});
 	};
 
-	buildPlayerSelect = function(){
+	buildPlayerSelect = function(append){
 		var playerOptions = "<option></option>";
 
 		$.each($rootScope.cache.mfl.players, function(key, value){
@@ -465,18 +493,18 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			playerOptions += "<option value='" + lateDynasty101PickName.replace(" ", "") + "'>" + lateDynasty101PickName + "</option>";
 		}*/
 
-		$("#playerSelect").empty().html(playerOptions);
-		$("#playerSelect").select2({
+		$("#" + append + "playerSelect").empty().html(playerOptions);
+		$("#" + append + "playerSelect").select2({
 			allowClear: true,
 			theme: "material"
 		});
 
-		$("#playerSelect").change(function(event){
-			var value = $("#playerSelect").select2('data');
-			$scope.searchResults = [];
+		$("#" + append + "playerSelect").change(function(event){
+			var value = $("#" + append + "playerSelect").select2('data');
+			$scope[append + "searchResults"] = [];
 			if(value && value.length > 0){
 				$.each(value, function(index, selectedPlayer){
-					$scope.searchResults.push({id: selectedPlayer.id});
+					$scope[append + "searchResults"].push({id: selectedPlayer.id});
 					dynasty101TradeValue($rootScope.cache.mfl.players[selectedPlayer.id], $scope.leagueInfo).then(function(){
 						applyRootScope();
 					});

@@ -68,7 +68,7 @@ var config = {
 });
 
 
-app.controller('ParentController', function($scope, $location, loginService, $rootScope, $timeout) {
+app.controller('ParentController', function($scope, $location, loginService, $rootScope, $timeout, $route) {
 
 	var newTagPrefix = "NewTag-";
 
@@ -127,7 +127,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 			dynastyDashboardDatabase.ref("cache/mfl/players").once("value", function(data){
 				var cachedPlayerData = data.val();
 
-				if(cachedPlayerData && cachedPlayerData.lastUpdated && moment(cachedPlayerData.lastUpdated, utcDateFormat).isSame(moment(), "day")){
+				if(!league || (cachedPlayerData && cachedPlayerData.lastUpdated && moment(cachedPlayerData.lastUpdated, utcDateFormat).isSame(moment(), "day"))){
 					$rootScope.cache.mfl.players = cachedPlayerData.players;
 					resolve();
 				}else{
@@ -341,11 +341,13 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 
 	is2QB = function(leagueInfo){
 		var twoQb = false;
-		$.each(leagueInfo.league.starters.position, function(index, position){
-			if(position.name == "QB" && position.limit == "1-2"){
-				twoQb = true;
-			}
-		});
+		if(leagueInfo){
+			$.each(leagueInfo.league.starters.position, function(index, position){
+				if(position.name == "QB" && position.limit == "1-2"){
+					twoQb = true;
+				}
+			});
+		}
 		return twoQb;
 	};
 
@@ -431,6 +433,15 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		}
 	};
 
+	$scope.mflLogin = function(){
+		var mflUsername = $("#mflUsername").val();
+		var mflPassword = $("#mflPassword").val();
+
+		doMflLogin(mflUsername, mflPassword).then(function(){
+			$route.reload();
+		});
+	};
+
 	retrieveMflCookies = function(uid){
 		return new Promise(function(resolve, reject){
 			if($rootScope.mflCookies){
@@ -500,13 +511,6 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		}, 300);
 	};
 
-});
-
-app.controller('HomeController', function($scope, $rootScope, $timeout) {
-
-	$scope.init = function(){
-		
-	};
 });
 
 updateMflCookies = function(uid, mflCookies){
