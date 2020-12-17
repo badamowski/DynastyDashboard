@@ -43,6 +43,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		$scope.leagueStandingsById = {};
 		$scope.teamRankById = {};
 		$scope.projectedScoresById = {};
+		$scope.leftSelectedPlayers = [];
+		$scope.rightSelectedPlayers = [];
+		$scope.leftSelectedPicks = [];
+		$scope.rightSelectedPicks = [];
+
+		$scope.analyze = "trade";
 
 		var allPromises = [];
 
@@ -167,6 +173,187 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}else{
 			return "";
 		}
+	};
+
+	$scope.isSelectedPlayer = function(player, type){
+		if(player && player.id){
+			if($scope.canUnSelectPlayer(player, type)){
+				return "selected-lap";
+			}
+		}
+		return "";
+	};
+
+	$scope.canSelectPlayer = function(player, type){
+		return !_.contains(justPlayerIds($scope[selectList(type)]), player.id);
+	};
+
+	$scope.canUnSelectPlayer = function(player, type){
+		return _.contains(justPlayerIds($scope[selectList(type)]), player.id);
+	};
+
+	$scope.selectPlayerKebab = function(player, $event, id, type) {
+		$event.preventDefault();
+		$event.stopImmediatePropagation();
+		toggleKebab(id);
+
+		var existingIndex = selectedPlayerIndex(player, selectList(type));
+		if(existingIndex >= 0){
+			$scope[selectList(type)].splice(existingIndex, 1);
+		}else{
+			$scope[selectList(type)].push(player);
+		}
+		applyScope();
+	};
+
+	$scope.isSelectedPick = function(draftPick, type){
+		if(draftPick && draftPick.description){
+			if($scope.canUnSelectPick(draftPick, type)){
+				return "selected-lap";
+			}
+		}
+		return "";
+	};
+
+	$scope.canSelectPick = function(draftPick, type){
+		return !_.contains(justPickDescriptions($scope[selectPickList(type)]), draftPick.description);
+	};
+
+	$scope.canUnSelectPick = function(draftPick, type){
+		return _.contains(justPickDescriptions($scope[selectPickList(type)]), draftPick.description);
+	};
+
+	$scope.selectPickKebab = function(draftPick, $event, id, type) {
+		$event.preventDefault();
+		$event.stopImmediatePropagation();
+		toggleKebab(id);
+
+		var existingIndex = selectedPickIndex(draftPick, selectPickList(type));
+		if(existingIndex >= 0){
+			$scope[selectPickList(type)].splice(existingIndex, 1);
+		}else{
+			$scope[selectPickList(type)].push(draftPick);
+		}
+		applyScope();
+	};
+
+	$scope.openDropdown = function($event, id){
+		$event.preventDefault();
+		$event.stopImmediatePropagation();
+		toggleKebab(id);
+	};
+
+	$scope.leftValueSum = function(){
+		return sumValues($scope.leftSelectedPlayers, $scope.leftSelectedPicks);
+	};
+
+	$scope.rightValueSum = function(){
+		return sumValues($scope.rightSelectedPlayers, $scope.rightSelectedPicks);
+	};
+
+	$scope.leftProjectedSum = function(){
+		return sumProjected($scope.leftSelectedPlayers);
+	};
+
+	$scope.rightProjectedSum = function(){
+		return sumProjected($scope.rightSelectedPlayers);
+	};
+
+	$scope.leftTitle = function(){
+		return determineTitle(true, $scope.leftSelectedPlayers, $scope.leftSelectedPicks);
+	};
+
+	$scope.rightTitle = function(){
+		return determineTitle(false, $scope.rightSelectedPlayers, $scope.rightSelectedPicks);
+	};
+
+	determineTitle = function(isLeft, selectPlayerList, selectPickList){
+		if((selectPlayerList && selectPlayerList.length > 0) || (selectPickList && selectPickList.length > 0)){
+			if($scope.analyze == "trade"){
+				if(isLeft){
+					return $scope.leagueInfoById[$scope.league.franchise_id].name;
+				}else{
+					return $scope.leagueInfoById[$scope.compareOtherTeamId].name;
+				}
+			}else{
+				return "";
+			}
+		}else{
+			return "";
+		}
+	};
+
+	sumProjected = function(selectPlayerList){
+		var totalValue = 0;
+		$.each(selectPlayerList, function(index, player){
+			if($scope.projectedScoresById && $scope.projectedScoresById[player.id]){
+				totalValue += parseFloat($scope.displayProjectedScore($scope.projectedScoresById[player.id].score));
+			}
+		});
+		return totalValue;
+	};
+
+	sumValues = function(selectPlayerList, selectPickList){
+		var totalValue = 0;
+		$.each(selectPlayerList, function(index, player){
+			totalValue += parseInt($rootScope.cache.dynasty101.players[player.id].value);
+		});
+		$.each(selectPickList, function(index, draftPick){
+			totalValue += parseInt($rootScope.cache.dynasty101.picks[$scope.dynasty101PickKeyFromMFLPickDescription(draftPick.description)].value);
+		});
+		return totalValue;
+	};
+
+	selectList = function(type){
+		if(type.indexOf("left") >= 0){
+			return "leftSelectedPlayers";
+		}else{
+			return "rightSelectedPlayers";
+		}
+	};
+
+	selectPickList = function(type){
+		if(type.indexOf("left") >= 0){
+			return "leftSelectedPicks";
+		}else{
+			return "rightSelectedPicks";
+		}
+	};
+
+	selectedPickIndex = function(draftPick, selectList){
+		var selectedIndex = -1;
+		$.each($scope[selectList], function(index, selectedDraftpick){
+			if(draftPick.description && selectedDraftpick.description == draftPick.description){
+				selectedIndex = index;
+			}
+		});
+		return selectedIndex;
+	}
+
+	selectedPlayerIndex = function(player, selectList){
+		var selectedIndex = -1;
+		$.each($scope[selectList], function(index, selectedPlayer){
+			if(player.id && selectedPlayer.id == player.id){
+				selectedIndex = index;
+			}
+		});
+		return selectedIndex;
+	}
+
+	justPickDescriptions = function(pickList){
+		return _.map(pickList, function(pick){
+			return pick.description;
+		});
+	};
+
+	justPlayerIds = function(playerList){
+		return _.map(playerList, function(player){
+			return player.id;
+		});
+	};
+
+	toggleKebab = function(id){
+		$('#' + id).dropdown('toggle');
 	};
 
 	loadWatchList = function(){

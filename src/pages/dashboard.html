@@ -30,19 +30,59 @@
 				<div class="col-md-3 scroll">
 					<h3>Studs</h3>
 					<span ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
-						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
+						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left'"></span>
 					</span>
 					<h3>Stash</h3>
 					<span ng-repeat="player in leagueAssetsById[league.franchise_id].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
-						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
+						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left'"></span>
 					</span>
 					<h3>Picks</h3>
 					<span ng-repeat="draftPick in leagueAssetsById[league.franchise_id].futureYearDraftPicks.draftPick">
-						<span ng-include="'pages/pick-card.html'"></span>
+						<span ng-include="'pages/pick-card.html'" ng-init="type = 'left'"></span>
 					</span>
 				</div>
 				<div class="col-md-6 main-area">
-					Lineup | Trade | Waivers
+					<div class="row">
+						<div class="col-md-12">
+							<h3>Analyze Trade</h3>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-6">
+							<div>
+								<h4 class="text-right"><i class="fas fa-crown"></i> {{leftValueSum()}}</h4>
+							</div>
+							<div>
+								<h4 class="text-right"><i class="fas fa-calendar-week"></i> {{leftProjectedSum()}}</h4>
+							</div>
+							<div class="text-right" ng-show="leftTitle()">
+								<strong>{{leftTitle()}} <i class="fas fa-arrow-right"></i></strong>
+							</div>
+							<span ng-repeat="player in leftSelectedPlayers | orderBy:orderFunction:true">
+								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left-select'"></span>
+							</span>
+							<span ng-repeat="draftPick in leftSelectedPicks">
+								<span ng-include="'pages/pick-card.html'" ng-init="type = 'left-select'"></span>
+							</span>
+						</div>
+						<div class="col-md-6">
+							<div>
+								<h4>{{rightValueSum()}} <i class="fas fa-crown"></i></h4>
+							</div>
+							<div>
+								<h4>{{rightProjectedSum()}} <i class="fas fa-calendar-week"></i></h4>
+							</div>
+							<div ng-show="rightTitle()">
+								<strong><i class="fas fa-arrow-left"></i> {{rightTitle()}}</strong>
+							</div>
+							<span ng-repeat="player in rightSelectedPlayers | orderBy:orderFunction:true">
+								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'right-select'"></span>
+							</span>
+							<span ng-repeat="draftPick in rightSelectedPicks">
+								<span ng-include="'pages/pick-card.html'" ng-init="type = 'right-select'"></span>
+							</span>
+						</div>
+					</div>
 				</div>
 				<div class="col-md-3 scroll">
 					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#other-teams-collapse" aria-expanded="false" aria-controls="other-teams-collapse" ng-click="otherTeamsExpanded = !otherTeamsExpanded">
@@ -63,15 +103,15 @@
 						<span ng-show="compareOtherTeamId">
 							<h3>Studs</h3>
 							<span ng-repeat="player in leagueAssetsById[compareOtherTeamId].players.player | filter:studsFilterFunction | orderBy:orderFunction:true">
-								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
+								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'other'"></span>
 							</span>
 							<h3>Stash</h3>
 							<span ng-repeat="player in leagueAssetsById[compareOtherTeamId].players.player | filter:stashFilterFunction | orderBy:orderFunction:true">
-								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false"></span>
+								<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'other'"></span>
 							</span>
 							<h3>Picks</h3>
 							<span ng-repeat="draftPick in leagueAssetsById[compareOtherTeamId].futureYearDraftPicks.draftPick">
-								<span ng-include="'pages/pick-card.html'"></span>
+								<span ng-include="'pages/pick-card.html'" ng-init="type = 'other'"></span>
 							</span>
 						</span>
 					</div>
@@ -91,7 +131,7 @@
 							</div>
 						</div>
 						<span ng-repeat="player in searchResults | orderBy:orderFunction:true">
-							<span ng-include="'pages/player-card.html'" ng-init="showOwner = true"></span>
+							<span ng-include="'pages/player-card.html'" ng-init="showOwner = true; type = 'search'"></span>
 						</span>
 					</div>
 					<button class="text-left width-100 no-padding btn btn-primary btn-lg collapse-control" type="button" data-toggle="collapse" data-target="#watch-list-collapse" aria-expanded="false" aria-controls="watch-list-collapse" ng-click="watchListExpanded = !watchListExpanded">
@@ -103,7 +143,7 @@
 					</button> 
 					<div class="collapse" id="watch-list-collapse">
 						<span ng-repeat="player in myWatchList.myWatchList.player | orderBy:orderFunction:true">
-							<span ng-include="'pages/player-card.html'" ng-init="showOwner = true"></span>
+							<span ng-include="'pages/player-card.html'" ng-init="showOwner = true; type = 'watch'"></span>
 						</span>
 					</div>
 				</div>

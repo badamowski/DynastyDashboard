@@ -1,4 +1,4 @@
-<div class="card left-nav-lap">
+<div class="card left-nav-lap" ng-class="isSelectedPlayer(player, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-player-' + player.id)">
 	<div class="card-number">
 		<span class="lap-number">{{cache.mfl.players[player.id].position}}</span>
 	</div>
@@ -19,5 +19,18 @@
 	<div>
 		<div class="lap-time"><i class="fas fa-crown"></i> {{cache.dynasty101.players[player.id].tier}} {{cache.dynasty101.players[player.id].value}}</div>
 		<div class="lap-time"><i class="fas fa-calendar-week"></i> {{displayProjectedScore(projectedScoresById[player.id].score)}}</div>
+	</div>
+	<div class="card-icon">
+		<div class="dropdown">
+			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-player-' + player.id)" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
+			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-player-{{player.id}}">
+				<li class="width-100 lap-menu-item">
+					<a class="lap-menu-link width-100" href="#" ng-click="selectPlayerKebab(player, $event, 'dropdown-' + type + '-player-' + player.id, type)">
+						<span ng-show="canSelectPlayer(player, type)"><i class="fas fa-chart-area"></i> Analyze</span>
+						<span ng-show="canUnSelectPlayer(player, type)"><i class="fas fa-times"></i> Deselect</span>
+					</a>
+				</li>
+			</ul>
+		</div>
 	</div>
 </div>
