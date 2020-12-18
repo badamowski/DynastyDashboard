@@ -17,8 +17,8 @@
 		</div>
 	</div>
 	<div>
-		<div class="lap-time"><i class="fas fa-crown"></i> {{cache.dynasty101.players[asset.id].tier}} {{cache.dynasty101.players[asset.id].value}}</div>
-		<div class="lap-time"><i class="fas fa-calendar-week"></i> {{displayProjectedScore(projectedScoresById[asset.id].score)}}</div>
+		<div class="lap-time"><i class="fas fa-crown hidden-xs"></i> {{getTierForAsset(asset)}} {{cache.dynasty101.players[asset.id].value}}</div>
+		<div class="lap-time"><i class="fas fa-calendar-week hidden-xs"></i> {{getProjectedScore(asset)}}</div>
 	</div>
 	<div class="card-icon">
 		<div class="dropdown">

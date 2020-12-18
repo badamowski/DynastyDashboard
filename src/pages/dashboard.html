@@ -1,6 +1,15 @@
 <div ng-init="init()">
-	<div class="row" ng-show="validMflCookies()">
-		<div class="col-md-12">
+	<div class="row">
+		<div class="col-md-2">
+			<div class="no-margin-top form-group">
+				<label class="control-label" for="sortSelect">Group by</label>
+				<div class="flex-import">
+					<select class="form-control" id="sortSelect" data-placeholder="Select Sort">
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-2" ng-show="validMflCookies()">
 			<div class="no-margin-top form-group">
 				<label class="control-label" for="leagueSelect">League</label>
 				<div class="flex-import">
@@ -13,12 +22,15 @@
 	<div class="row">
 		<div class="col-md-3 scroll">
 			<span ng-show="validMflCookies() && league">
-				<span ng-repeat="asset in fullAssetListById[league.franchise_id] | orderBy:orderFunction:true">
-					<span ng-hide="asset.isPick">
-						<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left'"></span>
-					</span>
-					<span ng-show="asset.isPick">
-						<span ng-include="'pages/pick-card.html'" ng-init="type = 'left'"></span>
+				<span ng-repeat="group in getGroups()">
+					<h3 ng-show="groupHasAssets(fullAssetListById[league.franchise_id], group)">{{group}}</h3>
+					<span ng-repeat="asset in filterAssetsByGroup(fullAssetListById[league.franchise_id], group) | orderBy:orderFunction:true">
+						<span ng-hide="asset.isPick">
+							<span ng-include="'pages/player-card.html'" ng-init="showOwner = false; type = 'left'"></span>
+						</span>
+						<span ng-show="asset.isPick">
+							<span ng-include="'pages/pick-card.html'" ng-init="type = 'left'"></span>
+						</span>
 					</span>
 				</span>
 			</span>
@@ -30,12 +42,15 @@
 						</select>
 					</div>
 				</div>
-				<span ng-repeat="asset in leftsearchResults | orderBy:orderFunction:true">
-					<span ng-hide="asset.isPick">
-						<span ng-include="'pages/player-card.html'" ng-init="type = 'left-search'"></span>
-					</span>
-					<span ng-show="asset.isPick">
-						<span ng-include="'pages/pick-card.html'" ng-init="type = 'left-search'"></span>
+				<span ng-repeat="group in getGroups()">
+					<h3 ng-show="groupHasAssets(leftsearchResults, group)">{{group}}</h3>
+					<span ng-repeat="asset in filterAssetsByGroup(leftsearchResults, group) | orderBy:orderFunction:true">
+						<span ng-hide="asset.isPick">
+							<span ng-include="'pages/player-card.html'" ng-init="type = 'left-search'"></span>
+						</span>
+						<span ng-show="asset.isPick">
+							<span ng-include="'pages/pick-card.html'" ng-init="type = 'left-search'"></span>
+						</span>
 					</span>
 				</span>
 			</div>
@@ -47,7 +62,7 @@
 				</div>
 			</div>
 			<div class="row" ng-show="leftSelectedPlayers.length > 0 || rightSelectedPlayers.length > 0">
-				<div class="col-md-6">
+				<div class="col-xs-6">
 					<div>
 						<h4 class="text-right"><i class="fas fa-crown"></i> {{leftValueSum()}}</h4>
 					</div>
@@ -55,7 +70,7 @@
 						<h4 class="text-right"><i class="fas fa-calendar-week"></i> {{leftProjectedSum()}}</h4>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-xs-6">
 					<div>
 						<h4>{{rightValueSum()}} <i class="fas fa-crown"></i></h4>
 					</div>
@@ -65,19 +80,19 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-xs-6">
 					<div class="text-right" ng-show="leftTitle()">
 						<strong>{{leftTitle()}} <i class="fas fa-arrow-right"></i></strong>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-xs-6">
 					<div ng-show="rightTitle()">
 						<strong><i class="fas fa-arrow-left"></i> {{rightTitle()}}</strong>
 					</div>
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-xs-6">
 					<span ng-repeat="asset in leftSelectedPlayers | orderBy:orderFunction:true">
 						<span ng-hide="asset.isPick">
 							<span ng-include="'pages/player-card.html'" ng-init="type = 'left-select'"></span>
@@ -87,7 +102,7 @@
 						</span>
 					</span>
 				</div>
-				<div class="col-md-6">
+				<div class="col-xs-6">
 					<span ng-repeat="asset in rightSelectedPlayers | orderBy:orderFunction:true">
 						<span ng-hide="asset.isPick">
 							<span ng-include="'pages/player-card.html'" ng-init="type = 'right-select'"></span>
@@ -117,12 +132,15 @@
 						</div>
 					</div>
 					<span ng-show="compareOtherTeamId">
-						<span ng-repeat="asset in fullAssetListById[compareOtherTeamId] | orderBy:orderFunction:true">
-							<span ng-hide="asset.isPick">
-								<span ng-include="'pages/player-card.html'" ng-init="type = 'other'"></span>
-							</span>
-							<span ng-show="asset.isPick">
-								<span ng-include="'pages/pick-card.html'" ng-init="type = 'other'"></span>
+						<span ng-repeat="group in getGroups()">
+							<h3 ng-show="groupHasAssets(fullAssetListById[compareOtherTeamId], group)">{{group}}</h3>
+							<span ng-repeat="asset in filterAssetsByGroup(fullAssetListById[compareOtherTeamId], group) | orderBy:orderFunction:true">
+								<span ng-hide="asset.isPick">
+									<span ng-include="'pages/player-card.html'" ng-init="type = 'other'"></span>
+								</span>
+								<span ng-show="asset.isPick">
+									<span ng-include="'pages/pick-card.html'" ng-init="type = 'other'"></span>
+								</span>
 							</span>
 						</span>
 					</span>
@@ -143,12 +161,15 @@
 						</select>
 					</div>
 				</div>
-				<span ng-repeat="asset in searchResults | orderBy:orderFunction:true">
-					<span ng-hide="asset.isPick">
-						<span ng-include="'pages/player-card.html'" ng-init="type = 'search'"></span>
-					</span>
-					<span ng-show="asset.isPick">
-						<span ng-include="'pages/pick-card.html'" ng-init="type = 'search'"></span>
+				<span ng-repeat="group in getGroups()">
+					<h3 ng-show="groupHasAssets(searchResults, group)">{{group}}</h3>
+					<span ng-repeat="asset in filterAssetsByGroup(searchResults, group) | orderBy:orderFunction:true">
+						<span ng-hide="asset.isPick">
+							<span ng-include="'pages/player-card.html'" ng-init="type = 'search'"></span>
+						</span>
+						<span ng-show="asset.isPick">
+							<span ng-include="'pages/pick-card.html'" ng-init="type = 'search'"></span>
+						</span>
 					</span>
 				</span>
 			</div>
@@ -161,8 +182,11 @@
 					</h4>
 				</button> 
 				<div class="collapse" id="watch-list-collapse">
-					<span ng-repeat="asset in myWatchList.myWatchList.player | orderBy:orderFunction:true">
-						<span ng-include="'pages/player-card.html'" ng-init="type = 'watch'"></span>
+					<span ng-repeat="group in getGroups()">
+						<h3 ng-show="groupHasAssets(myWatchList.myWatchList.player, group)">{{group}}</h3>
+						<span ng-repeat="asset in filterAssetsByGroup(myWatchList.myWatchList.player, group) | orderBy:orderFunction:true">
+							<span ng-include="'pages/player-card.html'" ng-init="type = 'watch'"></span>
+						</span>
 					</span>
 				</div>
 			</span>

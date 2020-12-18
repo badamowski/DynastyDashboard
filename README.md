@@ -18,8 +18,6 @@ MAJOR FEATURES:
 * Lineup
 
 SMALL ENHANCEMENTS
-* Sort
-* Group Titles
 * No login features
 ** Projected Scores
 ** Better viewing of all players? Search seems like a lot of clicks. Load top 100?

@@ -7,10 +7,15 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	$scope.playerSearchExpanded = false;
 	$scope.watchListExpanded = false;
 	$scope.otherTeamsExpanded = false;
+	$scope.groupBy = "dynasty-tier";
+	$scope.dynastyTierGroups = ["T1", "T2", "T3", "T4", "T5", "T6","T7", "T8", "T9", "T10","T11"];
+	$scope.positionGroups = ["QB", "RB", "WR", "TE", "Def", "PK","Other", "Pick"];
+	$scope.projectedGroups = ["20+", "10+", ">0", "0"]
 
 	$scope.init = function(){
 		initialLoad = true;
 		spinnerOn();
+		buildSortSelect();
 		userInit().then(function(){
 			if($rootScope.user){
 				retrieveMflCookies($rootScope.user.uid).then(function(){
@@ -60,6 +65,18 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			spinnerOff();
 			applyScope();
 		});	
+	};
+
+	$scope.getGroups = function(){
+		if($scope.groupBy == "dynasty-tier"){
+			return $scope.dynastyTierGroups;
+		}else if($scope.groupBy == "position"){
+			return $scope.positionGroups;
+		}else if($scope.groupBy == "projected"){
+			return $scope.projectedGroups;
+		}
+
+		return [];
 	};
 
 	$scope.loadLeague = function(league){
@@ -145,17 +162,25 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	$scope.orderFunction = function(asset){
-		if(asset.isPick){
-			if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.picks && $rootScope.cache.dynasty101.picks[asset.id] && $rootScope.cache.dynasty101.picks[asset.id].value){
-				return Number($rootScope.cache.dynasty101.picks[asset.id].value);
-			}else{
+		if($scope.groupBy == "projected"){
+			if(asset.isPick){
 				return 0;
+			}else{
+				return $scope.getProjectedScore(asset);
 			}
 		}else{
-			if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.players && $rootScope.cache.dynasty101.players[asset.id] && $rootScope.cache.dynasty101.players[asset.id].value){
-				return Number($rootScope.cache.dynasty101.players[asset.id].value);
+			if(asset.isPick){
+				if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.picks && $rootScope.cache.dynasty101.picks[asset.id] && $rootScope.cache.dynasty101.picks[asset.id].value){
+					return Number($rootScope.cache.dynasty101.picks[asset.id].value);
+				}else{
+					return 0;
+				}
 			}else{
-				return 0;
+				if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.players && $rootScope.cache.dynasty101.players[asset.id] && $rootScope.cache.dynasty101.players[asset.id].value){
+					return Number($rootScope.cache.dynasty101.players[asset.id].value);
+				}else{
+					return 0;
+				}
 			}
 		}
 	};
@@ -166,6 +191,22 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}else{
 			return "";
 		}
+	};
+
+	$scope.getTierForAsset = function(asset){
+		if(asset){
+			if(asset.isPick){
+				if($rootScope.cache.dynasty101.picks[asset.id]){
+					return $rootScope.cache.dynasty101.picks[asset.id].tier;
+				}
+			}else{
+				if($rootScope.cache.dynasty101.players[asset.id]){
+					return $rootScope.cache.dynasty101.players[asset.id].tier;
+				}
+			}
+		}
+		
+		return "";
 	};
 
 	$scope.dynasty101PickKeyFromMFLPickDescription = function(pickDescription){
@@ -207,16 +248,50 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}
 	};
 
-	$scope.studsFilterFunction = function(player) {
-		if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.players && $rootScope.cache.dynasty101.players[player.id] && $rootScope.cache.dynasty101.players[player.id].tier){
-			return studTiers.includes($rootScope.cache.dynasty101.players[player.id].tier);
-		} else {
-			return false;
+	$scope.groupHasAssets = function(assets, group){
+		return assets && group && $scope.filterAssetsByGroup(assets, group).length > 0;
+	};
+
+	$scope.filterAssetsByGroup = function(assets, group){
+		return _.filter(assets, function(asset){
+			return filterAssetsByGroupFilterFunction(asset, group);
+		});
+	};
+
+	filterAssetsByGroupFilterFunction = function(asset, group){
+		if($scope.groupBy == "dynasty-tier" && asset && group){
+			return group == $scope.getTierForAsset(asset);
+		}else if($scope.groupBy == "position" && asset && group){
+			if(group == "Other"){
+				return !asset.isPick && !_.contains($scope.positionGroups, $scope.cache.mfl.players[asset.id].position);
+			}else if(group == "Pick"){
+				return asset.isPick;
+			}else{
+				return !asset.isPick && group == $scope.cache.mfl.players[asset.id].position;
+			}
+		}else if($scope.groupBy == "projected" && asset && group){
+			var projectedScore = $scope.getProjectedScore(asset);
+
+			if(group == "20+"){
+				return projectedScore >= 20;
+			}else if(group == "10+"){
+				return projectedScore >= 10 && projectedScore < 20;
+			}else if(group == ">0"){
+				return projectedScore > 0 && projectedScore < 10;
+			}else {
+				return projectedScore <= 0;
+			}
+		}else{
+			return true;
 		}
 	};
 
-	$scope.stashFilterFunction = function(player) {
-		return !$scope.studsFilterFunction(player);
+	$scope.getProjectedScore = function(asset){
+		var projectedScore = 0;
+		if($scope.projectedScoresById && $scope.projectedScoresById[asset.id] && $scope.projectedScoresById[asset.id].score){
+			projectedScore = $scope.projectedScoresById[asset.id].score;
+		}
+		return Number(projectedScore);
 	};
 
 	$scope.displayPlayerRosterStatus = function(playerId){
@@ -325,9 +400,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	sumProjected = function(selectAssetList){
 		var totalValue = 0;
 		$.each(selectAssetList, function(index, asset){
-			if(!asset.isPick && $scope.projectedScoresById && $scope.projectedScoresById[asset.id]){
-				totalValue += parseFloat($scope.displayProjectedScore($scope.projectedScoresById[asset.id].score));
-			}
+			totalValue += $scope.getProjectedScore(asset);
 		});
 		return totalValue.toFixed(2);
 	};
@@ -438,6 +511,28 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			}else{
 				initialLoad = false;
 			}
+		});
+	};
+
+	buildSortSelect = function(){
+		var sortOptions = "<option value='dynasty-tier'>Dynasty Tier</option>";
+		sortOptions += "<option value='position'>Position</option>";
+		sortOptions += "<option value='projected'>Projected Score</option>";
+
+		$("#sortSelect").empty().html(sortOptions);
+		$("#sortSelect").select2({
+			allowClear: true,
+			theme: "material"
+		});
+
+		$("#sortSelect").val($scope.groupBy).trigger("change");
+
+		$("#sortSelect").change(function(event){
+			var value = $("#sortSelect").val();
+			if(value){
+				$scope.groupBy = value;
+			}
+			applyScope();
 		});
 	};
 
