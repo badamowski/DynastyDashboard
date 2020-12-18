@@ -31,7 +31,12 @@
 					</div>
 				</div>
 				<span ng-repeat="asset in leftsearchResults | orderBy:orderFunction:true">
-					<span ng-include="'pages/player-card.html'" ng-init="type = 'left-search'"></span>
+					<span ng-hide="asset.isPick">
+						<span ng-include="'pages/player-card.html'" ng-init="type = 'left-search'"></span>
+					</span>
+					<span ng-show="asset.isPick">
+						<span ng-include="'pages/pick-card.html'" ng-init="type = 'left-search'"></span>
+					</span>
 				</span>
 			</div>
 		</div>
@@ -139,7 +144,12 @@
 					</div>
 				</div>
 				<span ng-repeat="asset in searchResults | orderBy:orderFunction:true">
-					<span ng-include="'pages/player-card.html'" ng-init="type = 'search'"></span>
+					<span ng-hide="asset.isPick">
+						<span ng-include="'pages/player-card.html'" ng-init="type = 'search'"></span>
+					</span>
+					<span ng-show="asset.isPick">
+						<span ng-include="'pages/pick-card.html'" ng-init="type = 'search'"></span>
+					</span>
 				</span>
 			</div>
 			<span ng-show="validMflCookies() && league">

@@ -1,13 +1,15 @@
 <div class="card left-nav-lap" ng-class="isSelectedAsset(asset, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(asset.description))">
 	<div class="card-number">
-		<span class="lap-number">{{estimatedPick(asset.description)}}</span>
+		<span class="lap-number" ng-show="asset.description">{{estimatedPick(asset.description)}}</span>
+		<span class="lap-number" ng-hide="asset.description">{{asset.pick}}</span>
 	</div>
 	<div class="card-info">
 		<div ng-show="shouldDisplayPlayerRosterStatus(asset.id, type)">
 			<strong>{{displayPlayerRosterStatus(asset.id)}}</strong>
 		</div>
 		<div>
-			<strong>{{extractYear(asset.description)}} Round {{extractRound(asset.description)}}</strong>
+			<strong ng-show="asset.description">{{extractYear(asset.description)}} Round {{extractRound(asset.description)}}</strong>
+			<strong ng-hide="asset.description">{{asset.name}}</strong>
 		</div>
 		<div class="small">
 			{{extractTeam(asset.description)}}
@@ -15,7 +17,7 @@
 	</div>
 	<div>
 		<div class="lap-time">
-			<i class="fas fa-crown"></i> {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(asset.description)].tier}} {{cache.dynasty101.picks[dynasty101PickKeyFromMFLPickDescription(asset.description)].value}}
+			<i class="fas fa-crown"></i> {{cache.dynasty101.picks[asset.id].tier}} {{cache.dynasty101.picks[asset.id].value}}
 		</div>
 	</div>
 	<div class="card-icon">

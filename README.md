@@ -21,7 +21,7 @@ SMALL ENHANCEMENTS
 * Sort
 * Group Titles
 * No login features
-** Include picks in generic player search for compare
+** Projected Scores
 ** Better viewing of all players? Search seems like a lot of clicks. Load top 100?
 * Tagging of players with 1:many tags
 * More data

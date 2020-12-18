@@ -137,6 +137,69 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 								$rootScope.cache.mfl.players[player.id] = player;
 							});
 
+							//Add picks to cache of players
+							var round = 1;
+							for (round = 1; round <= 5; round++) {
+								var pick;
+								for (pick = 1; pick <= 12; pick++) {
+									var year = "2021",
+										estimatedPick = round.toString() + "." + pick.toString();
+
+									var pickName = dynasty101PickName(year, estimatedPick, 12),
+										pickKey = dynasty101PickKey(year, estimatedPick, 12);
+
+									$rootScope.cache.mfl.players[pickKey] = {
+										id: pickKey,
+										name: pickName,
+										year: year,
+										round: round,
+										pick: estimatedPick,
+										isPick: true
+									};
+								}
+							}
+
+							round = 1;
+							for (round = 1; round <= 5; round++) {
+								var year = "2022",
+									earlyEstimatedPick = round.toString() + ".1",
+									midEstimatedPick = round.toString() + ".6",
+									lateEstimatedPick = round.toString() + ".12";
+
+								var earlyPickKey = dynasty101PickKey(year, earlyEstimatedPick, 12),
+									midPickKey = dynasty101PickKey(year, midEstimatedPick, 12),
+									latePickKey = dynasty101PickKey(year, lateEstimatedPick, 12);
+
+								var earlyPickName = dynasty101PickName(year, earlyEstimatedPick, 12),
+									midPickName = dynasty101PickName(year, midEstimatedPick, 12),
+									latePickName = dynasty101PickName(year, lateEstimatedPick, 12);
+
+								$rootScope.cache.mfl.players[earlyPickKey] = {
+									id: earlyPickKey,
+									name: earlyPickName,
+									year: year,
+									round: round,
+									pick: earlyEstimatedPick,
+									isPick: true
+								};
+								$rootScope.cache.mfl.players[midPickKey] = {
+									id: midPickKey,
+									name: midPickName,
+									year: year,
+									round: round,
+									pick: midEstimatedPick,
+									isPick: true
+								};
+								$rootScope.cache.mfl.players[latePickKey] = {
+									id: latePickKey,
+									name: latePickName,
+									year: year,
+									round: round,
+									pick: lateEstimatedPick,
+									isPick: true
+								};
+							}
+
 							var firebaseMFLPlayers = {
 								players: $rootScope.cache.mfl.players,
 								lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
