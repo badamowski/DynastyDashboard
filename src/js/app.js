@@ -218,10 +218,15 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		});
 	};
 
-	dynasty101PickTradeValue = function(year, estimatedPick, leagueInfo){
+	dynasty101PickTradeValue = function(year, estimatedPick, leagueInfo, assumptions){
 		return new Promise(function(resolve, reject){
-			var pickName = dynasty101PickName(year, estimatedPick, leagueInfo.league.franchises.count),
-				pickKey = dynasty101PickKey(year, estimatedPick, leagueInfo.league.franchises.count);
+			var franchiseCount = assumptions.franchiseCount;
+			if(leagueInfo && leagueInfo.league && leagueInfo.league.franchises && leagueInfo.league.franchises.count){
+				franchiseCount = leagueInfo.league.franchises.count;
+			}
+
+			var pickName = dynasty101PickName(year, estimatedPick, franchiseCount),
+				pickKey = dynasty101PickKey(year, estimatedPick, franchiseCount);
 			if(pickName){
 				if($rootScope.cache.dynasty101.picks[pickKey] && $rootScope.cache.dynasty101.picks[pickKey].value){
 					resolve();
@@ -234,7 +239,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 						}else{
 							var body = {
 								info: pickName,
-								QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+								QB: is2QB(leagueInfo, assumptions) ? "2QBValue" : "1QBValue"
 							};
 
 							$.ajax({
@@ -311,7 +316,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		}
 	};
 
-	dynasty101TradeValue = function(player, leagueInfo){
+	dynasty101TradeValue = function(player, leagueInfo, assumptions){
 		return new Promise(function(resolve, reject){
 			findDynasty101Player(player).then(function(){
 				if($rootScope.cache.dynasty101.players[player.id]){
@@ -322,7 +327,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 					}else{
 						var body = {
 							info: $rootScope.cache.dynasty101.players[player.id].name,
-							QB: is2QB(leagueInfo) ? "2QBValue" : "1QBValue"
+							QB: is2QB(leagueInfo, assumptions) ? "2QBValue" : "1QBValue"
 						};
 
 						$.ajax({
@@ -402,9 +407,9 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		});
 	};
 
-	is2QB = function(leagueInfo){
-		var twoQb = false;
-		if(leagueInfo){
+	is2QB = function(leagueInfo, assumptions){
+		var twoQb = assumptions.is2QB;
+		if(leagueInfo && leagueInfo.league && leagueInfo.league.starters && leagueInfo.league.starters.position){
 			$.each(leagueInfo.league.starters.position, function(index, position){
 				if(position.name == "QB" && position.limit == "1-2"){
 					twoQb = true;

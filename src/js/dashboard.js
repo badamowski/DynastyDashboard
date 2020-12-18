@@ -11,6 +11,10 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	$scope.dynastyTierGroups = ["T1", "T2", "T3", "T4", "T5", "T6","T7", "T8", "T9", "T10","T11"];
 	$scope.positionGroups = ["QB", "RB", "WR", "TE", "Def", "PK","Other", "Pick"];
 	$scope.projectedGroups = ["20+", "10+", ">0", "0"]
+	$scope.assumptions = {
+		franchiseCount: 12,
+		is2QB: false
+	};
 
 	$scope.init = function(){
 		initialLoad = true;
@@ -40,25 +44,13 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	loadNonLoggedInView = function(){
+		$scope.league = undefined;
+
+		loadAllInjuries();
 		loadAllPlayers().then(function(){
 			$scope.playerSearchExpanded = true;
 			$scope.leftSelectedPlayers = [];
 			$scope.rightSelectedPlayers = [];
-			$scope.leagueInfo = {
-				league: {
-					franchises: {
-						count: 12
-					},
-					starters: {
-						position: [
-							{
-								name: "QB",
-								limit: "1"
-							}
-						]
-					}
-				}
-			};
 
 			buildPlayerSelect("");
 			buildPlayerSelect("left");
@@ -210,7 +202,9 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	$scope.dynasty101PickKeyFromMFLPickDescription = function(pickDescription){
-		return dynasty101PickKey($scope.extractYear(pickDescription), $scope.estimatedPick(pickDescription), $scope.leagueInfo.league.franchises.count);
+		if($scope.leagueInfo && $scope.leagueInfo.league && $scope.leagueInfo.league.franchises && $scope.leagueInfo.league.franchises.count){
+			return dynasty101PickKey($scope.extractYear(pickDescription), $scope.estimatedPick(pickDescription), $scope.leagueInfo.league.franchises.count);
+		}
 	};
 
 	$scope.extractTeam = function(pickDescription){
@@ -471,7 +465,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	loadWatchList = function(){
 		$.each($scope.myWatchList.myWatchList.player, function(index, player){
-			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
+			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo, $scope.assumptions).then(function(){
 				applyRootScope();
 			});
 		});
@@ -480,13 +474,13 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	loadFranchise = function(franchiseId){
 		$.each($scope.leagueAssetsById[franchiseId].futureYearDraftPicks.draftPick, function(index, draftPick){
-			dynasty101PickTradeValue($scope.extractYear(draftPick.description), $scope.estimatedPick(draftPick.description), $scope.leagueInfo).then(function(){
+			dynasty101PickTradeValue($scope.extractYear(draftPick.description), $scope.estimatedPick(draftPick.description), $scope.leagueInfo, $scope.assumptions).then(function(){
 				applyRootScope();
 			});
 		});
 
 		$.each($scope.leagueAssetsById[franchiseId].players.player, function(index, player){
-			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo).then(function(){
+			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo, $scope.assumptions).then(function(){
 				applyRootScope();
 			});
 		});
@@ -506,10 +500,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		});
 
 		$("#leagueSelect").change(function(event){
-			if(!initialLoad){
-				selectLeague();
+			var leagueSelect = $("#leagueSelect").val();
+			spinnerOn();
+			if(leagueSelect && $scope.mflLeagues && $scope.mflLeagues.leagues && $scope.mflLeagues.leagues[leagueSelect]){
+				$scope.loadLeague($scope.mflLeagues.leagues[leagueSelect]);
 			}else{
-				initialLoad = false;
+				loadNonLoggedInView();
 			}
 		});
 	};
@@ -590,18 +586,18 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 					if(selectedAsset.isPick){
 						if($scope.franchisePickByPickId && $scope.franchisePickByPickId[selectedAsset.id]){
 							$scope[append + "searchResults"].push($scope.franchisePickByPickId[selectedAsset.id]);
-							dynasty101PickTradeValue($scope.extractYear($scope.franchisePickByPickId[selectedAsset.id].description), $scope.estimatedPick($scope.franchisePickByPickId[selectedAsset.id].description), $scope.leagueInfo).then(function(){
+							dynasty101PickTradeValue($scope.extractYear($scope.franchisePickByPickId[selectedAsset.id].description), $scope.estimatedPick($scope.franchisePickByPickId[selectedAsset.id].description), $scope.leagueInfo, $scope.assumptions).then(function(){
 								applyRootScope();
 							});
 						}else{
 							$scope[append + "searchResults"].push(selectedAsset);
-							dynasty101PickTradeValue(selectedAsset.year, selectedAsset.pick, $scope.leagueInfo).then(function(){
+							dynasty101PickTradeValue(selectedAsset.year, selectedAsset.pick, $scope.leagueInfo, $scope.assumptions).then(function(){
 								applyRootScope();
 							});
 						}
 					}else{
 						$scope[append + "searchResults"].push(selectedAsset);
-						dynasty101TradeValue($rootScope.cache.mfl.players[selectedAsset.id], $scope.leagueInfo).then(function(){
+						dynasty101TradeValue($rootScope.cache.mfl.players[selectedAsset.id], $scope.leagueInfo, $scope.assumptions).then(function(){
 							applyRootScope();
 						});
 					}
@@ -610,13 +606,5 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 			applyScope();
 		});
-	};
-
-	selectLeague = function(){
-		var leagueSelect = $("#leagueSelect").val();
-		if(leagueSelect && $scope.mflLeagues && $scope.mflLeagues.leagues && $scope.mflLeagues.leagues[leagueSelect]){
-			spinnerOn();
-			$scope.loadLeague($scope.mflLeagues.leagues[leagueSelect]);
-		}
 	};
 });
