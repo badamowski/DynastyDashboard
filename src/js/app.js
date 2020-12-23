@@ -1,4 +1,4 @@
-var app = angular.module('dynastyDashboard', ['ngRoute']);
+var app = angular.module('dynastyDashboard', ['ngRoute', 'ui.sortable']);
 
 var utcDateFormat = "YYYY-MM-DDTHH:mm:ss.SSSZZ";
 
@@ -122,16 +122,18 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		}
 	};
 
-	loadAllPlayers = function(league){
+	loadAllPlayers = function(){
 		return new Promise(function(resolve, reject){
 			dynastyDashboardDatabase.ref("cache/mfl/players").once("value", function(data){
 				var cachedPlayerData = data.val();
 
-				if(!league || (cachedPlayerData && cachedPlayerData.lastUpdated && moment(cachedPlayerData.lastUpdated, utcDateFormat).isSame(moment(), "day"))){
+				if(cachedPlayerData 
+					&& cachedPlayerData.lastUpdated 
+					&& isToday(cachedPlayerData.lastUpdated)){
 					$rootScope.cache.mfl.players = cachedPlayerData.players;
 					resolve();
 				}else{
-					mflExport("players", $rootScope.mflCookies, "tempPlayers", league, "DETAILS=1").then(function(){
+					mflExport("players", "none", "tempPlayers", undefined, "DETAILS=1").then(function(){
 						if(Array.isArray($scope.tempPlayers.players.player)){
 							$.each($scope.tempPlayers.players.player, function(index, player){
 								$rootScope.cache.mfl.players[player.id] = player;
@@ -218,61 +220,10 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		});
 	};
 
-	dynasty101PickTradeValue = function(year, estimatedPick, leagueInfo, assumptions){
-		return new Promise(function(resolve, reject){
-			var franchiseCount = assumptions.franchiseCount;
-			if(leagueInfo && leagueInfo.league && leagueInfo.league.franchises && leagueInfo.league.franchises.count){
-				franchiseCount = leagueInfo.league.franchises.count;
-			}
-
-			var pickName = dynasty101PickName(year, estimatedPick, franchiseCount),
-				pickKey = dynasty101PickKey(year, estimatedPick, franchiseCount);
-			if(pickName){
-				if($rootScope.cache.dynasty101.picks[pickKey] && $rootScope.cache.dynasty101.picks[pickKey].value){
-					resolve();
-				}else{
-					dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).once("value", function(data){
-						var cachedPickData = data.val();
-						if(cachedPickData && cachedPickData.lastUpdated && moment(cachedPickData.lastUpdated, utcDateFormat).isSame(moment(), "day")){
-							$rootScope.cache.dynasty101.picks[pickKey] = cachedPickData;
-							resolve();
-						}else{
-							var body = {
-								info: pickName,
-								QB: is2QB(leagueInfo, assumptions) ? "2QBValue" : "1QBValue"
-							};
-
-							$.ajax({
-								url: "/.netlify/functions/dynasty-101-value",
-								type: "POST",
-								data: JSON.stringify(body),
-								contentType:"application/json",
-								dataType:"json",
-								success: function(data){
-									$rootScope.cache.dynasty101.picks[pickKey] = {
-										pickName: pickName,
-										value: data.value,
-										tier: data.tier,
-										lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
-									};
-									dynastyDashboardDatabase.ref("cache/dynasty101/picks/" + pickKey).update($rootScope.cache.dynasty101.picks[pickKey]).then(function(){
-										resolve();
-									});
-								}
-							});
-						}
-					});
-				}
-			}else{
-				resolve();
-			}
-		});
-	};
-
 	dynasty101PickKey = function(year, estimatedPick, teamCount){
 		var pickName = dynasty101PickName(year, estimatedPick, teamCount);
 		if(pickName){
-			return pickName.replaceAll(" ", "");
+			return pickName.replaceAll(" ", "_");
 		}else{
 			return "";
 		}
@@ -316,18 +267,23 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		}
 	};
 
-	dynasty101TradeValue = function(player, leagueInfo, assumptions){
+	isToday = function(compareDate){
+		return moment(compareDate, utcDateFormat).isSame(moment(), "day")
+	};
+
+	dynasty101TradeValue = function(player, leagueSettings){
 		return new Promise(function(resolve, reject){
 			findDynasty101Player(player).then(function(){
 				if($rootScope.cache.dynasty101.players[player.id]){
-					if($rootScope.cache.dynasty101.players[player.id].value 
-						&& $rootScope.cache.dynasty101.players[player.id].lastUpdated
-						&& moment($rootScope.cache.dynasty101.players[player.id].lastUpdated, utcDateFormat).isSame(moment(), "day")){
+					if($rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue]
+						&& $rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue].value 
+						&& $rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue].lastUpdated
+						&& isToday($rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue].lastUpdated)){
 						resolve();
 					}else{
 						var body = {
 							info: $rootScope.cache.dynasty101.players[player.id].name,
-							QB: is2QB(leagueInfo, assumptions) ? "2QBValue" : "1QBValue"
+							QB: leagueSettings.is2QBStringValue.split("qb_")[1]
 						};
 
 						$.ajax({
@@ -337,9 +293,12 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 							contentType:"application/json",
 							dataType:"json",
 							success: function(data){
-								$rootScope.cache.dynasty101.players[player.id].value = data.value;
-								$rootScope.cache.dynasty101.players[player.id].tier = data.tier;
-								$rootScope.cache.dynasty101.players[player.id].lastUpdated = moment().tz(moment.tz.guess()).format(utcDateFormat);
+								if(!$rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue]){
+									$rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue] = {};
+								}
+								$rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue].value = data.value;
+								$rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue].tier = data.tier;
+								$rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue].lastUpdated = moment().tz(moment.tz.guess()).format(utcDateFormat);
 								dynastyDashboardDatabase.ref("cache/dynasty101/players/" + player.id).update($rootScope.cache.dynasty101.players[player.id]).then(function(){
 									resolve();
 								});
@@ -347,7 +306,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 						});
 					}
 				}else{
-					$rootScope.cache.dynasty101.players[player.id] = {
+					$rootScope.cache.dynasty101.players[player.id][leagueSettings.is2QBStringValue] = {
 						value: "0",
 						tier: "T11"
 					}
@@ -365,14 +324,19 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 					if(dynasty101Player 
 						&& (!dynasty101Player.error 
 							|| (dynasty101Player.lastUpdated 
-								&& moment(dynasty101Player.lastUpdated, utcDateFormat).isSame(moment(), "day")))){
+								&& isToday(dynasty101Player.lastUpdated)))){
 						$rootScope.cache.dynasty101.players[player.id] = dynasty101Player;
 						resolve();
 					}else{
-						var splitPlayerName = player.name.split(","),
-							body = {
-								entry: splitPlayerName[1].trim() + " " + splitPlayerName[0].trim()
-							};
+						console.log(player);
+						var body = {};
+
+						if(player.isPick){
+							body.entry = player.id.replaceAll("_", " ");
+						}else{
+							var splitPlayerName = player.name.split(",");
+							body.entry = splitPlayerName[1].trim() + " " + splitPlayerName[0].trim();
+						}
 
 						$.ajax({
 							url: "/.netlify/functions/dynasty-101-search",
@@ -389,6 +353,17 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 								console.error("unable to find " + player.name + " in Dynasty 101. MFL Id: " + player.id);
 								console.error(error);
 								$rootScope.cache.dynasty101.players[player.id] = {
+									name: player.name,
+									error: true,
+									lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat)
+								};
+								$rootScope.cache.dynasty101.players[player.id].qb_1QBValue = {
+									error: true,
+									lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat),
+									value: "0",
+									tier: "T11"
+								};
+								$rootScope.cache.dynasty101.players[player.id].qb_2QBValue = {
 									error: true,
 									lastUpdated: moment().tz(moment.tz.guess()).format(utcDateFormat),
 									value: "0",
@@ -407,21 +382,9 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 		});
 	};
 
-	is2QB = function(leagueInfo, assumptions){
-		var twoQb = assumptions.is2QB;
-		if(leagueInfo && leagueInfo.league && leagueInfo.league.starters && leagueInfo.league.starters.position){
-			$.each(leagueInfo.league.starters.position, function(index, position){
-				if(position.name == "QB" && position.limit == "1-2"){
-					twoQb = true;
-				}
-			});
-		}
-		return twoQb;
-	};
-
 	loadAllInjuries = function(){
 		$rootScope.injuriesById = {};
-		mflExport("injuries", $rootScope.mflCookies, "allInjuries", $scope.league).then(function(){
+		mflExport("injuries", "none", "allInjuries", $scope.league).then(function(){
 			$.each($scope.allInjuries.injuries.injury, function(index, injury){
 				$rootScope.injuriesById[injury.id] = injury;
 			});

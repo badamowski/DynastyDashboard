@@ -1,4 +1,4 @@
-<div class="card left-nav-lap" ng-class="isSelectedAsset(asset, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(asset.description))">
+<div class="card left-nav-lap" ng-class="isSelectedAsset(asset, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-asset-' + asset.id)" data-asset-id="{{asset.id}}">
 	<div class="card-number">
 		<span class="lap-number" ng-show="asset.description">{{estimatedPick(asset.description)}}</span>
 		<span class="lap-number" ng-hide="asset.description">{{asset.pick}}</span>
@@ -17,15 +17,15 @@
 	</div>
 	<div>
 		<div class="lap-time">
-			<i class="fas fa-crown hidden-xs"></i> {{getTierForAsset(asset)}} {{cache.dynasty101.picks[asset.id].value}}
+			<i class="fas fa-crown hidden-xs"></i> {{getTierForAsset(asset)}} {{getDynasty101ValueForAsset(asset)}}
 		</div>
 	</div>
 	<div class="card-icon">
 		<div class="dropdown">
-			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + dynasty101PickKeyFromMFLPickDescription(asset.description))" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
-			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-pick-{{dynasty101PickKeyFromMFLPickDescription(asset.description)}}">
+			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-asset-' + asset.id)" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
+			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-asset-{{asset.id}}">
 				<li class="width-100 lap-menu-item">
-					<a class="lap-menu-link width-100" href="#" ng-click="selectAssetKebab(asset, $event, 'dropdown-' + type + '-pick-' + ynasty101PickKeyFromMFLPickDescription(asset.description), type)">
+					<a class="lap-menu-link width-100" href="#" ng-click="selectAssetKebab(asset, $event, 'dropdown-' + type + '-asset-' + asset.id, type)">
 						<span ng-show="canSelectAsset(asset, type)"><i class="fas fa-chart-area"></i> Compare</span>
 						<span ng-show="canUnSelectAsset(asset, type)"><i class="fas fa-times"></i> Deselect</span>
 					</a>

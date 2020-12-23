@@ -1,23 +1,24 @@
 app.controller('DashboardController', function($scope, $routeParams, $location, $rootScope, $timeout) {
 
-	var initialLoad = true,
-		studTiers = ["T1", "T2", "T3", "T4", "T5"];
+	var qbSelectOptions = [
+		{id: "qb_1QBValue", text: "1 QB"},
+		{id: "qb_2QBValue", text: "2 QB (Superflex)"}
+	], groupBySelectOptions = [
+		{id: "dynasty-tier", text: "Dynasty Tier"},
+		{id: "position", text: "Position"},
+		{id: "projected", text: "Projected Score"}
+	];
 
 	$scope.searchResults = [];
 	$scope.playerSearchExpanded = false;
 	$scope.watchListExpanded = false;
 	$scope.otherTeamsExpanded = false;
 	$scope.groupBy = "dynasty-tier";
-	$scope.dynastyTierGroups = ["T1", "T2", "T3", "T4", "T5", "T6","T7", "T8", "T9", "T10","T11"];
-	$scope.positionGroups = ["QB", "RB", "WR", "TE", "Def", "PK","Other", "Pick"];
+	$scope.dynastyTierGroups = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "Other"];
+	$scope.positionGroups = ["QB", "RB", "WR", "TE", "Def", "PK", "Other", "Pick"];
 	$scope.projectedGroups = ["20+", "10+", ">0", "0"]
-	$scope.assumptions = {
-		franchiseCount: 12,
-		is2QB: false
-	};
 
 	$scope.init = function(){
-		initialLoad = true;
 		spinnerOn();
 		buildSortSelect();
 		userInit().then(function(){
@@ -25,11 +26,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 				retrieveMflCookies($rootScope.user.uid).then(function(){
 					if($rootScope.validMflCookies()){
 						mflExport("myleagues", $rootScope.mflCookies, "mflLeagues").then(function(){
-							buildLeagueSelect();
 							if($scope.mflLeagues && $scope.mflLeagues.leagues && Object.keys($scope.mflLeagues.leagues).length == 1){
-								$("#leagueSelect").val(Object.keys($scope.mflLeagues.leagues)[0]).prop("disabled", true).trigger("change");
-								$scope.loadLeague(Object.values($scope.mflLeagues.leagues)[0]);
+								var onlyLeague = Object.values($scope.mflLeagues.leagues)[0];
+								buildLeagueSelect(onlyLeague, true);
+								$scope.loadLeague(onlyLeague);
 							}else{
+								buildLeagueSelect();
 								loadNonLoggedInView();
 							}
 						});
@@ -45,6 +47,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	loadNonLoggedInView = function(){
 		$scope.league = undefined;
+		$scope.leagueSettings = {
+			franchiseCount: 12,
+			is2QBStringValue: "qb_1QBValue"
+		};
+
+		buildQBSelect($scope.leagueSettings.is2QBStringValue, false);
 
 		loadAllInjuries();
 		loadAllPlayers().then(function(){
@@ -78,7 +86,6 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		$scope.leagueAssetsById = {};
 		$scope.fullAssetListById = {};
 		$scope.leagueStandingsById = {};
-		$scope.teamRankById = {};
 		$scope.projectedScoresById = {};
 		$scope.franchiseIdByAssetId = {};
 		$scope.franchisePickByPickId = {}
@@ -90,43 +97,36 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		loadAllInjuries();
 		
 		allPromises.push(mflExport("assets", $rootScope.mflCookies, "leagueAssets", $scope.league));
-		allPromises.push(loadAllPlayers($scope.league));
+		allPromises.push(loadAllPlayers());
 		allPromises.push(mflExport("league", $rootScope.mflCookies, "leagueInfo", $scope.league));
 		allPromises.push(mflExport("myWatchList", $rootScope.mflCookies, "myWatchList", $scope.league));
 		allPromises.push(mflExport("leagueStandings", $rootScope.mflCookies, "leagueStandings", $scope.league));
 		allPromises.push(mflExport("projectedScores", $rootScope.mflCookies, "projectedScores", $scope.league));
 
 		Promise.all(allPromises).then(function(){
+
+			$scope.leagueSettings = {
+				franchiseCount: 12,
+				is2QBStringValue: determine2QbStringValue($scope.leagueInfo)
+			};
+
+			buildQBSelect($scope.leagueSettings.is2QBStringValue, true);
+
+			if($scope.leagueInfo && $scope.leagueInfo.league && $scope.leagueInfo.league.franchises && $scope.leagueInfo.league.franchises.count){
+				$scope.leagueSettings.franchiseCount = $scope.leagueInfo.league.franchises.count;
+			}
+
 			$.each($scope.leagueInfo.league.franchises.franchise, function(index, franchise){
 				$scope.leagueInfoById[franchise.id] = franchise;
 				$scope.leagueInfoByName[franchise.name] = franchise;
 			});
 
 			$scope.leagueStandings.leagueStandings.franchise.sort(function(franchise1, franchise2){
-				return parseFloat(franchise2.altpwr) - parseFloat(franchise1.altpwr);
+				return parseFloat(franchise1.altpwr) - parseFloat(franchise2.altpwr);
 			});
 
-			$.each($scope.leagueStandings.leagueStandings.franchise, function(index, franchise){
-				$scope.teamRankById[franchise.id] = index + 1;
-				$scope.leagueStandingsById[franchise.id] = franchise;
-			});
-
-			$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
-				$.each(franchise.futureYearDraftPicks.draftPick, function(pickIndex, draftPick){
-					var pickId = $scope.dynasty101PickKeyFromMFLPickDescription(draftPick.description);
-					franchise.futureYearDraftPicks.draftPick[pickIndex].isPick = true;
-					franchise.futureYearDraftPicks.draftPick[pickIndex].id = pickId;
-					$scope.franchisePickByPickId[pickId] = franchise.futureYearDraftPicks.draftPick[pickIndex];
-					$scope.franchiseIdByAssetId[pickId] = franchise.id;
-				});
-
-				$.each(franchise.players.player, function(playerIndex, player){
-					$scope.franchiseIdByAssetId[player.id] = franchise.id;
-				});
-
-				$scope.leagueAssetsById[franchise.id] = franchise;
-				$scope.fullAssetListById[franchise.id] = _.union(franchise.players.player, franchise.futureYearDraftPicks.draftPick);
-			});
+			populateLeagueStandings();
+			populateFranchiseAssets();
 
 			$.each($scope.projectedScores.projectedScores.playerScore, function(index, playerProjectedScore){
 				$scope.projectedScoresById[playerProjectedScore.id] = playerProjectedScore;
@@ -145,6 +145,14 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		});
 	};
 
+	$scope.sortableOptions = {
+		stop: function() {
+			populateLeagueStandings();
+			populateFranchiseAssets();
+			recalculateValues(true);
+		}
+	};
+
 	$scope.showPlayerSearch = function(hasMFLUser){
 		if(hasMFLUser){
 			return "collapse";
@@ -153,28 +161,65 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}
 	};
 
+	populateLeagueStandings = function(){
+		$.each($scope.leagueStandings.leagueStandings.franchise, function(index, franchise){
+			$scope.leagueStandings.leagueStandings.franchise[index].pick = index + 1
+			$scope.leagueStandings.leagueStandings.franchise[index].rank = $scope.leagueSettings.franchiseCount - index;
+			$scope.leagueStandingsById[franchise.id] = $scope.leagueStandings.leagueStandings.franchise[index];
+		});
+	};
+
+	populateFranchiseAssets = function(){
+		$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
+			$.each(franchise.futureYearDraftPicks.draftPick, function(pickIndex, draftPick){
+				var pickId = $scope.dynasty101PickKeyFromMFLPickDescription(draftPick.description);
+				franchise.futureYearDraftPicks.draftPick[pickIndex].isPick = true;
+				franchise.futureYearDraftPicks.draftPick[pickIndex].id = pickId;
+				$scope.franchisePickByPickId[pickId] = franchise.futureYearDraftPicks.draftPick[pickIndex];
+				$scope.franchiseIdByAssetId[pickId] = franchise.id;
+			});
+
+			$.each(franchise.players.player, function(playerIndex, player){
+				$scope.franchiseIdByAssetId[player.id] = franchise.id;
+			});
+
+			$scope.leagueAssetsById[franchise.id] = franchise;
+			$scope.fullAssetListById[franchise.id] = _.union(franchise.players.player, franchise.futureYearDraftPicks.draftPick);
+		});
+	};
+
+	determine2QbStringValue = function(leagueInfo){
+		var twoQb = "qb_1QBValue";
+		if(leagueInfo && leagueInfo.league && leagueInfo.league.starters && leagueInfo.league.starters.position){
+			$.each(leagueInfo.league.starters.position, function(index, position){
+				if(position.name == "QB" && position.limit == "1-2"){
+					twoQb = "qb_2QBValue";
+				}
+			});
+		}
+		return twoQb;
+	};
+
 	$scope.orderFunction = function(asset){
 		if($scope.groupBy == "projected"){
-			if(asset.isPick){
-				return 0;
-			}else{
-				return $scope.getProjectedScore(asset);
-			}
+			return $scope.getProjectedScore(asset);
 		}else{
-			if(asset.isPick){
-				if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.picks && $rootScope.cache.dynasty101.picks[asset.id] && $rootScope.cache.dynasty101.picks[asset.id].value){
-					return Number($rootScope.cache.dynasty101.picks[asset.id].value);
-				}else{
-					return 0;
-				}
-			}else{
-				if($rootScope.cache && $rootScope.cache.dynasty101 && $rootScope.cache.dynasty101.players && $rootScope.cache.dynasty101.players[asset.id] && $rootScope.cache.dynasty101.players[asset.id].value){
-					return Number($rootScope.cache.dynasty101.players[asset.id].value);
-				}else{
-					return 0;
-				}
+			return $scope.getDynasty101ValueForAsset(asset);
+		}
+	};
+
+	$scope.getDynasty101ValueForAsset = function(asset){
+		if(asset && $scope.leagueSettings && $scope.leagueSettings.is2QBStringValue){
+			if($rootScope.cache 
+				&& $rootScope.cache.dynasty101 
+				&& $rootScope.cache.dynasty101.players 
+				&& $rootScope.cache.dynasty101.players[asset.id] 
+				&& $rootScope.cache.dynasty101.players[asset.id][$scope.leagueSettings.is2QBStringValue]
+				&& $rootScope.cache.dynasty101.players[asset.id][$scope.leagueSettings.is2QBStringValue].value){
+				return Number($rootScope.cache.dynasty101.players[asset.id][$scope.leagueSettings.is2QBStringValue].value);
 			}
 		}
+		return 0;
 	};
 
 	$scope.extractYear = function(pickDescription){
@@ -187,14 +232,8 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	$scope.getTierForAsset = function(asset){
 		if(asset){
-			if(asset.isPick){
-				if($rootScope.cache.dynasty101.picks[asset.id]){
-					return $rootScope.cache.dynasty101.picks[asset.id].tier;
-				}
-			}else{
-				if($rootScope.cache.dynasty101.players[asset.id]){
-					return $rootScope.cache.dynasty101.players[asset.id].tier;
-				}
+			if($rootScope.cache.dynasty101.players[asset.id] && $rootScope.cache.dynasty101.players[asset.id][$scope.leagueSettings.is2QBStringValue]){
+				return $rootScope.cache.dynasty101.players[asset.id][$scope.leagueSettings.is2QBStringValue].tier;
 			}
 		}
 		
@@ -219,11 +258,26 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		var round = $scope.extractRound(pickDescription),
 			teamName = $scope.extractTeam(pickDescription);
 
-		if($scope.leagueInfo && $scope.leagueInfo.league && $scope.leagueInfo.league.franchises && $scope.leagueInfo.league.franchises.count && $scope.teamRankById && $scope.leagueInfoByName && $scope.leagueInfoByName[teamName] && $scope.teamRankById[$scope.leagueInfoByName[teamName].id]){
-			return round + "." + ($scope.leagueInfo.league.franchises.count - ($scope.teamRankById[$scope.leagueInfoByName[teamName].id] - 1)).toString();
+		if($scope.leagueInfo 
+			&& $scope.leagueInfo.league 
+			&& $scope.leagueInfo.league.franchises 
+			&& $scope.leagueInfo.league.franchises.count 
+			&& $scope.leagueStandingsById 
+			&& $scope.leagueInfoByName 
+			&& $scope.leagueInfoByName[teamName] 
+			&& $scope.leagueStandingsById[$scope.leagueInfoByName[teamName].id]
+			&& $scope.leagueStandingsById[$scope.leagueInfoByName[teamName].id].pick){
+			return round + "." + $scope.leagueStandingsById[$scope.leagueInfoByName[teamName].id].pick;
 		}else{
 			return "";
 		}
+	};
+
+	$scope.orderByFranchisePick = function(franchise){
+		if(franchise && franchise.pick){
+			return franchise.pick;
+		}
+		return 0;
 	};
 
 	$scope.displayProjectedScore = function(projectedScore){
@@ -254,7 +308,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	filterAssetsByGroupFilterFunction = function(asset, group){
 		if($scope.groupBy == "dynasty-tier" && asset && group){
-			return group == $scope.getTierForAsset(asset);
+			var tier = $scope.getTierForAsset(asset);
+			if(group == "Other"){
+				return !tier || !_.contains($scope.dynastyTierGroups, tier);
+			}else{
+				return group == tier;
+			}
 		}else if($scope.groupBy == "position" && asset && group){
 			if(group == "Other"){
 				return !asset.isPick && !_.contains($scope.positionGroups, $scope.cache.mfl.players[asset.id].position);
@@ -402,11 +461,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	sumValues = function(selectAssetList){
 		var totalValue = 0;
 		$.each(selectAssetList, function(index, asset){
-			if(asset.isPick){
-				totalValue += parseInt($rootScope.cache.dynasty101.picks[asset.id].value);
-			}else{
-				totalValue += parseInt($rootScope.cache.dynasty101.players[asset.id].value);
-			}
+			totalValue += $scope.getDynasty101ValueForAsset(asset);
 		});
 		return totalValue;
 	};
@@ -465,7 +520,7 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	loadWatchList = function(){
 		$.each($scope.myWatchList.myWatchList.player, function(index, player){
-			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo, $scope.assumptions).then(function(){
+			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueSettings).then(function(){
 				applyRootScope();
 			});
 		});
@@ -474,23 +529,27 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	loadFranchise = function(franchiseId){
 		$.each($scope.leagueAssetsById[franchiseId].futureYearDraftPicks.draftPick, function(index, draftPick){
-			dynasty101PickTradeValue($scope.extractYear(draftPick.description), $scope.estimatedPick(draftPick.description), $scope.leagueInfo, $scope.assumptions).then(function(){
+			dynasty101TradeValue(draftPick, $scope.leagueSettings).then(function(){
 				applyRootScope();
 			});
 		});
 
 		$.each($scope.leagueAssetsById[franchiseId].players.player, function(index, player){
-			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueInfo, $scope.assumptions).then(function(){
+			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueSettings).then(function(){
 				applyRootScope();
 			});
 		});
 	};
 
-	buildLeagueSelect = function(){
+	buildLeagueSelect = function(league, disabled){
 		var leagueOptions = "<option></option>";
 
 		$.each($scope.mflLeagues.leagues, function(key, value){
-			leagueOptions += "<option value='" + key + "'>" + value.name + "</option>";
+			leagueOptions += "<option value='" + key + "'";
+			if(league && league.league_id == value.league_id){
+				leagueOptions += " selected='selected'";
+			}
+			leagueOptions += ">" + value.name + "</option>";
 		});
 
 		$("#leagueSelect").empty().html(leagueOptions);
@@ -498,6 +557,8 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			allowClear: true,
 			theme: "material"
 		});
+
+		$("#leagueSelect").prop("disabled", disabled);
 
 		$("#leagueSelect").change(function(event){
 			var leagueSelect = $("#leagueSelect").val();
@@ -511,9 +572,15 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	buildSortSelect = function(){
-		var sortOptions = "<option value='dynasty-tier'>Dynasty Tier</option>";
-		sortOptions += "<option value='position'>Position</option>";
-		sortOptions += "<option value='projected'>Projected Score</option>";
+		var sortOptions = ""; 
+		
+		$.each(groupBySelectOptions, function(index, groupBySelectOption){
+			sortOptions += "<option value='" + groupBySelectOption.id + "'";
+			if($scope.groupBy == groupBySelectOption.id){
+				sortOptions += " selected='selected'";
+			}
+			sortOptions += ">" + groupBySelectOption.text + "</option>";
+		});
 
 		$("#sortSelect").empty().html(sortOptions);
 		$("#sortSelect").select2({
@@ -521,14 +588,62 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			theme: "material"
 		});
 
-		$("#sortSelect").val($scope.groupBy).trigger("change");
-
 		$("#sortSelect").change(function(event){
 			var value = $("#sortSelect").val();
 			if(value){
 				$scope.groupBy = value;
 			}
 			applyScope();
+		});
+	};
+
+	buildQBSelect = function(selectedValue, disabled){
+		var qbOptions = "";
+
+		$.each(qbSelectOptions, function(index, qbSelectOption){
+			qbOptions += "<option value='" + qbSelectOption.id + "'";
+			if(selectedValue == qbSelectOption.id){
+				qbOptions += " selected='selected'";
+			}
+			qbOptions += ">" + qbSelectOption.text + "</option>";
+		});
+
+		$("#qbSelect").empty().html(qbOptions);
+		$("#qbSelect").select2({
+			allowClear: true,
+			theme: "material"
+		});
+
+		$("#qbSelect").prop("disabled", disabled);
+
+		$("#qbSelect").change(function(event){
+			var value = $("#qbSelect").val();
+			$scope.leagueSettings.is2QBStringValue = value;
+			recalculateValues();
+		});
+	};
+
+	recalculateValues = function(picksOnly){
+		var assetsToUpdate = _.union($scope.leftSelectedPlayers, $scope.rightSelectedPlayers, $scope.searchResults);
+
+		if($scope.league){
+			assetsToUpdate = _.union(assetsToUpdate, $scope.fullAssetListById[$scope.league.franchise_id]);
+			if($scope.myWatchList && $scope.myWatchList.myWatchList && $scope.myWatchList.myWatchList.player){
+				assetsToUpdate = _.union(assetsToUpdate, $scope.myWatchList.myWatchList.player);
+			}
+			if($scope.compareOtherTeamId){
+				assetsToUpdate = _.union(assetsToUpdate, $scope.fullAssetListById[$scope.compareOtherTeamId]);
+			}
+		}else{
+			assetsToUpdate = _.union(assetsToUpdate, $scope.leftsearchResults);
+		}
+
+		$.each(assetsToUpdate, function(index, asset){
+			if(!picksOnly || asset.isPick){
+				dynasty101TradeValue(asset, $scope.leagueSettings).then(function(){
+					applyRootScope();
+				});
+			}
 		});
 	};
 
@@ -583,24 +698,10 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 			if(value && value.length > 0){
 				$.each(value, function(index, selectedPlayer){
 					var selectedAsset = $rootScope.cache.mfl.players[selectedPlayer.id];
-					if(selectedAsset.isPick){
-						if($scope.franchisePickByPickId && $scope.franchisePickByPickId[selectedAsset.id]){
-							$scope[append + "searchResults"].push($scope.franchisePickByPickId[selectedAsset.id]);
-							dynasty101PickTradeValue($scope.extractYear($scope.franchisePickByPickId[selectedAsset.id].description), $scope.estimatedPick($scope.franchisePickByPickId[selectedAsset.id].description), $scope.leagueInfo, $scope.assumptions).then(function(){
-								applyRootScope();
-							});
-						}else{
-							$scope[append + "searchResults"].push(selectedAsset);
-							dynasty101PickTradeValue(selectedAsset.year, selectedAsset.pick, $scope.leagueInfo, $scope.assumptions).then(function(){
-								applyRootScope();
-							});
-						}
-					}else{
-						$scope[append + "searchResults"].push(selectedAsset);
-						dynasty101TradeValue($rootScope.cache.mfl.players[selectedAsset.id], $scope.leagueInfo, $scope.assumptions).then(function(){
-							applyRootScope();
-						});
-					}
+					$scope[append + "searchResults"].push(selectedAsset);
+					dynasty101TradeValue(selectedAsset, $scope.leagueSettings).then(function(){
+						applyRootScope();
+					});
 				});
 			}
 

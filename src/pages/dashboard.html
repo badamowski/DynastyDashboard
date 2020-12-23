@@ -9,6 +9,20 @@
 				</div>
 			</div>
 		</div>
+		<div class="col-md-2">
+			<div class="no-margin-top form-group">
+				<label class="control-label" for="qbSelect">QB</label>
+				<div class="flex-import">
+					<select class="form-control" id="qbSelect" data-placeholder="Select QB">
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-2" ng-show="validMflCookies()">
+			<div class="no-margin-top form-group">
+				<button class="btn" ng-click="openModal($event, 'draft-order-modal')"><i class="fas fa-arrows-alt-v"></i> Draft Order</button>
+			</div>
+		</div>
 		<div class="col-md-2" ng-show="validMflCookies()">
 			<div class="no-margin-top form-group">
 				<label class="control-label" for="leagueSelect">League</label>
@@ -192,4 +206,29 @@
 			</span>
 		</div>
 	</div>
+</div>
+<div class="modal fade" id="draft-order-modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Estimated Draft Order</h4>
+				</div>
+			<div class="modal-body">
+				<ul ui-sortable="sortableOptions" ng-model="leagueStandings.leagueStandings.franchise">
+					<li class="card left-nav-lap" ng-repeat="franchise in leagueStandings.leagueStandings.franchise">
+						<div class="card-number">
+							<i class="fas fa-arrows-alt-v"></i>
+						</div>
+						<div class="card-info">
+							{{franchise.pick}} {{leagueInfoById[franchise.id].name}}
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
 </div>

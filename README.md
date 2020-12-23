@@ -12,15 +12,14 @@ netlify dev
 MFL Doc: https://www63.myfantasyleague.com/2020/api_info?STATE=test&CCAT=export&TYPE=players&L=24385
 
 BUGS:
+* Projected Scores when not logged in
 
 MAJOR FEATURES:
 * Draft
 * Lineup
 
 SMALL ENHANCEMENTS
-* No login features
-** Projected Scores
-** Better viewing of all players? Search seems like a lot of clicks. Load top 100?
+* Encrypt Cookies and un-encrypt in function
 * Tagging of players with 1:many tags
 * More data
 ** Roster vs IR spot: https://www63.myfantasyleague.com/2020/export?TYPE=rosters&L=24385&APIKEY=&FRANCHISE=&W=&JSON=1
