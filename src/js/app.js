@@ -328,7 +328,6 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 						$rootScope.cache.dynasty101.players[player.id] = dynasty101Player;
 						resolve();
 					}else{
-						console.log(player);
 						var body = {};
 
 						if(player.isPick){
