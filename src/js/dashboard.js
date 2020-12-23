@@ -175,6 +175,8 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 				var pickId = $scope.dynasty101PickKeyFromMFLPickDescription(draftPick.description);
 				franchise.futureYearDraftPicks.draftPick[pickIndex].isPick = true;
 				franchise.futureYearDraftPicks.draftPick[pickIndex].id = pickId;
+				franchise.futureYearDraftPicks.draftPick[pickIndex].year = $scope.extractYear(draftPick.description);
+				franchise.futureYearDraftPicks.draftPick[pickIndex].round = $scope.extractRound(draftPick.description);
 				$scope.franchisePickByPickId[pickId] = franchise.futureYearDraftPicks.draftPick[pickIndex];
 				$scope.franchiseIdByAssetId[pickId] = franchise.id;
 			});
@@ -242,11 +244,18 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	$scope.dynasty101PickKeyFromMFLPickDescription = function(pickDescription){
 		if($scope.leagueInfo && $scope.leagueInfo.league && $scope.leagueInfo.league.franchises && $scope.leagueInfo.league.franchises.count){
-			return dynasty101PickKey($scope.extractYear(pickDescription), $scope.estimatedPick(pickDescription), $scope.leagueInfo.league.franchises.count);
+			return dynasty101PickKey($scope.extractYear(pickDescription), $scope.estimatedPickFromDescription(pickDescription), $scope.leagueInfo.league.franchises.count);
 		}
 	};
 
-	$scope.extractTeam = function(pickDescription){
+	$scope.extractTeam = function(asset){
+		if(asset && asset.isPick && $scope.league && $scope.franchisePickByPickId[asset.id] && $scope.franchisePickByPickId[asset.id].description){
+			return $scope.extractTeamFromDescription($scope.franchisePickByPickId[asset.id].description);
+		}
+		return "";
+	};
+
+	$scope.extractTeamFromDescription = function(pickDescription){
 		if(pickDescription){
 			return pickDescription.split("Pick from ")[1];
 		}else{
@@ -254,9 +263,9 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}
 	};
 
-	$scope.estimatedPick = function(pickDescription){
+	$scope.estimatedPickFromDescription = function(pickDescription){
 		var round = $scope.extractRound(pickDescription),
-			teamName = $scope.extractTeam(pickDescription);
+			teamName = $scope.extractTeamFromDescription(pickDescription);
 
 		if($scope.leagueInfo 
 			&& $scope.leagueInfo.league 
@@ -271,6 +280,19 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		}else{
 			return "";
 		}
+	};
+
+	$scope.estimatedPick = function(asset){
+		if(asset && asset.isPick){
+			if($scope.league && $scope.franchisePickByPickId[asset.id] && $scope.franchisePickByPickId[asset.id].description){
+				return $scope.estimatedPickFromDescription($scope.franchisePickByPickId[asset.id].description);
+			}
+
+			if(asset.pick){
+				return asset.pick;
+			}
+		}
+		return "";
 	};
 
 	$scope.orderByFranchisePick = function(franchise){

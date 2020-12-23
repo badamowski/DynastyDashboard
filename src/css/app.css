@@ -260,6 +260,10 @@ body,h1,h2,h3,h4,h5 {
   padding-top: 10px;
 }
 
+.padding-top-20 {
+  padding-top: 20px;
+}
+
 .padding-top-5 {
   padding-top: 5px;
 }
@@ -330,11 +334,16 @@ body,h1,h2,h3,h4,h5 {
 
 .card-number {
   align-self: center;
-  flex-grow: 1;
 }
 
 .card-info {
-  flex-grow: 2;
+  width: 60%;
+  text-align: left;
+}
+
+.card-info-draft {
+  width: 90%;
+  text-align: left;
 }
 
 .card-times {

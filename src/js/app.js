@@ -349,7 +349,7 @@ app.controller('ParentController', function($scope, $location, loginService, $ro
 									resolve();
 								});
 							}, error: function(error){
-								console.error("unable to find " + player.name + " in Dynasty 101. MFL Id: " + player.id);
+								console.error("unable to find " + body.entry + " in Dynasty 101. MFL Id: " + player.id);
 								console.error(error);
 								$rootScope.cache.dynasty101.players[player.id] = {
 									name: player.name,

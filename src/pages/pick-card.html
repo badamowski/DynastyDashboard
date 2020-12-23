@@ -1,31 +1,29 @@
-<div class="card left-nav-lap" ng-class="isSelectedAsset(asset, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-asset-' + asset.id)" data-asset-id="{{asset.id}}">
+<div class="card left-nav-lap" ng-class="isSelectedAsset(asset, type)" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + asset.id)" data-asset-id="{{asset.id}}">
 	<div class="card-number">
-		<span class="lap-number" ng-show="asset.description">{{estimatedPick(asset.description)}}</span>
-		<span class="lap-number" ng-hide="asset.description">{{asset.pick}}</span>
+		<span class="lap-number">{{estimatedPick(asset)}}</span>
 	</div>
 	<div class="card-info">
 		<div ng-show="shouldDisplayPlayerRosterStatus(asset.id, type)">
 			<strong>{{displayPlayerRosterStatus(asset.id)}}</strong>
 		</div>
 		<div>
-			<strong ng-show="asset.description">{{extractYear(asset.description)}} Round {{extractRound(asset.description)}}</strong>
-			<strong ng-hide="asset.description">{{asset.name}}</strong>
+			<strong>{{asset.year}} Round {{asset.round}}</strong>
 		</div>
 		<div class="small">
-			{{extractTeam(asset.description)}}
+			{{extractTeam(asset)}}
 		</div>
 	</div>
-	<div>
+	<div class="text-right">
 		<div class="lap-time">
 			<i class="fas fa-crown hidden-xs"></i> {{getTierForAsset(asset)}} {{getDynasty101ValueForAsset(asset)}}
 		</div>
 	</div>
 	<div class="card-icon">
 		<div class="dropdown">
-			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-asset-' + asset.id)" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
-			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-asset-{{asset.id}}">
+			<a href="#" class="kebab-black" ng-click="openDropdown($event, 'dropdown-' + type + '-pick-' + asset.id)" data-toggle="dropdown">&nbsp;<i class="fa fa-ellipsis-v"></i></a>
+			<ul class="lap-dropdown dropdown-menu" id="dropdown-{{type}}-pick-{{asset.id}}">
 				<li class="width-100 lap-menu-item">
-					<a class="lap-menu-link width-100" href="#" ng-click="selectAssetKebab(asset, $event, 'dropdown-' + type + '-asset-' + asset.id, type)">
+					<a class="lap-menu-link width-100" href="#" ng-click="selectAssetKebab(asset, $event, 'dropdown-' + type + '-pick-' + asset.id, type)">
 						<span ng-show="canSelectAsset(asset, type)"><i class="fas fa-chart-area"></i> Compare</span>
 						<span ng-show="canUnSelectAsset(asset, type)"><i class="fas fa-times"></i> Deselect</span>
 					</a>
