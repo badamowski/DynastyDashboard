@@ -80,7 +80,7 @@
 					<div>
 						<h4 class="text-right"><i class="fas fa-crown"></i> {{leftValueSum()}}</h4>
 					</div>
-					<div>
+					<div ng-show="league">
 						<h4 class="text-right"><i class="fas fa-calendar-week"></i> {{leftProjectedSum()}}</h4>
 					</div>
 				</div>
@@ -88,7 +88,7 @@
 					<div>
 						<h4>{{rightValueSum()}} <i class="fas fa-crown"></i></h4>
 					</div>
-					<div>
+					<div ng-show="league">
 						<h4>{{rightProjectedSum()}} <i class="fas fa-calendar-week"></i></h4>
 					</div>
 				</div>
