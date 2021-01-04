@@ -288,8 +288,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	$scope.estimatedPick = function(asset){
 		if(asset && asset.isPick){
-			if($scope.league && $scope.franchisePickByPickId[asset.id] && $scope.franchisePickByPickId[asset.id].description){
-				return $scope.estimatedPickFromDescription($scope.franchisePickByPickId[asset.id].description);
+			if($scope.league){
+				if(asset.description){
+					return $scope.estimatedPickFromDescription(asset.description);
+				}else if($scope.franchisePickByPickId[asset.id] && $scope.franchisePickByPickId[asset.id].description){
+					return $scope.estimatedPickFromDescription($scope.franchisePickByPickId[asset.id].description);
+				}
 			}
 
 			if(asset.pick){
