@@ -249,8 +249,12 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	$scope.extractTeam = function(asset){
-		if(asset && asset.isPick && $scope.league && $scope.franchisePickByPickId[asset.id] && $scope.franchisePickByPickId[asset.id].description){
-			return $scope.extractTeamFromDescription($scope.franchisePickByPickId[asset.id].description);
+		if(asset && asset.isPick && $scope.league){
+			if(asset.description){
+				return $scope.extractTeamFromDescription(asset.description);
+			}else if($scope.franchisePickByPickId[asset.id] && $scope.franchisePickByPickId[asset.id].description){
+				return $scope.extractTeamFromDescription($scope.franchisePickByPickId[asset.id].description);
+			}
 		}
 		return "";
 	};
