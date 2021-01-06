@@ -26,12 +26,30 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 				retrieveMflCookies($rootScope.user.uid).then(function(){
 					if($rootScope.validMflCookies()){
 						mflExport("myleagues", $rootScope.mflCookies, "mflLeagues").then(function(){
-							if($scope.mflLeagues && $scope.mflLeagues.leagues && Object.keys($scope.mflLeagues.leagues).length == 1){
-								var onlyLeague = Object.values($scope.mflLeagues.leagues)[0];
-								buildLeagueSelect(onlyLeague, true);
-								$scope.loadLeague(onlyLeague);
+							$scope.leagueByLeagueId = {};
+							if($scope.mflLeagues && $scope.mflLeagues.leagues){
+								if($scope.mflLeagues.leagues.league && Array.isArray($scope.mflLeagues.leagues.league)){
+									$.each($scope.mflLeagues.leagues.league, function(index, league){
+										$scope.leagueByLeagueId[league.league_id] = league;
+									});
+
+									if($scope.mflLeagues.leagues.league.length > 1){
+										buildLeagueSelect();
+										loadNonLoggedInView();
+									}else if($scope.mflLeagues.leagues.league.length == 1){
+										var onlyLeague = $scope.mflLeagues.leagues.league[0];
+										buildLeagueSelect(onlyLeague, true);
+										$scope.loadLeague(onlyLeague);
+									}else{
+										loadNonLoggedInView();
+									}
+								}else if(Object.keys($scope.mflLeagues.leagues).length == 1){
+									var onlyLeague = Object.values($scope.mflLeagues.leagues)[0];
+									$scope.leagueByLeagueId[onlyLeague.league_id] = onlyLeague;
+									buildLeagueSelect(onlyLeague, true);
+									$scope.loadLeague(onlyLeague);
+								}
 							}else{
-								buildLeagueSelect();
 								loadNonLoggedInView();
 							}
 						});
@@ -171,22 +189,32 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 
 	populateFranchiseAssets = function(){
 		$.each($scope.leagueAssets.assets.franchise, function(index, franchise){
-			$.each(franchise.futureYearDraftPicks.draftPick, function(pickIndex, draftPick){
-				var pickId = $scope.dynasty101PickKeyFromMFLPickDescription(draftPick.description);
-				franchise.futureYearDraftPicks.draftPick[pickIndex].isPick = true;
-				franchise.futureYearDraftPicks.draftPick[pickIndex].id = pickId;
-				franchise.futureYearDraftPicks.draftPick[pickIndex].year = $scope.extractYear(draftPick.description);
-				franchise.futureYearDraftPicks.draftPick[pickIndex].round = $scope.extractRound(draftPick.description);
-				$scope.franchisePickByPickId[pickId] = franchise.futureYearDraftPicks.draftPick[pickIndex];
-				$scope.franchiseIdByAssetId[pickId] = franchise.id;
-			});
+			if(franchise.futureYearDraftPicks){
+				$.each(franchise.futureYearDraftPicks.draftPick, function(pickIndex, draftPick){
+					var pickId = $scope.dynasty101PickKeyFromMFLPickDescription(draftPick.description);
+					franchise.futureYearDraftPicks.draftPick[pickIndex].isPick = true;
+					franchise.futureYearDraftPicks.draftPick[pickIndex].id = pickId;
+					franchise.futureYearDraftPicks.draftPick[pickIndex].year = $scope.extractYear(draftPick.description);
+					franchise.futureYearDraftPicks.draftPick[pickIndex].round = $scope.extractRound(draftPick.description);
+					$scope.franchisePickByPickId[pickId] = franchise.futureYearDraftPicks.draftPick[pickIndex];
+					$scope.franchiseIdByAssetId[pickId] = franchise.id;
+				});
+			}
 
-			$.each(franchise.players.player, function(playerIndex, player){
-				$scope.franchiseIdByAssetId[player.id] = franchise.id;
-			});
+			if(franchise.players && franchise.players.player){
+				$.each(franchise.players.player, function(playerIndex, player){
+					$scope.franchiseIdByAssetId[player.id] = franchise.id;
+				});
+			}
 
 			$scope.leagueAssetsById[franchise.id] = franchise;
-			$scope.fullAssetListById[franchise.id] = _.union(franchise.players.player, franchise.futureYearDraftPicks.draftPick);
+			if(franchise.futureYearDraftPicks && franchise.players && franchise.players.player){
+				$scope.fullAssetListById[franchise.id] = _.union(franchise.players.player, franchise.futureYearDraftPicks.draftPick);
+			}else if(franchise.players && franchise.players.player){
+				$scope.fullAssetListById[franchise.id] = franchise.players.player;
+			}else if(franchise.futureYearDraftPicks){
+				$scope.fullAssetListById[franchise.id] = franchise.futureYearDraftPicks;
+			}
 		});
 	};
 
@@ -558,28 +586,32 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 	};
 
 	loadFranchise = function(franchiseId){
-		$.each($scope.leagueAssetsById[franchiseId].futureYearDraftPicks.draftPick, function(index, draftPick){
-			dynasty101TradeValue(draftPick, $scope.leagueSettings).then(function(){
-				applyRootScope();
+		if($scope.leagueAssetsById[franchiseId].futureYearDraftPicks){
+			$.each($scope.leagueAssetsById[franchiseId].futureYearDraftPicks.draftPick, function(index, draftPick){
+				dynasty101TradeValue(draftPick, $scope.leagueSettings).then(function(){
+					applyRootScope();
+				});
 			});
-		});
+		}
 
-		$.each($scope.leagueAssetsById[franchiseId].players.player, function(index, player){
-			dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueSettings).then(function(){
-				applyRootScope();
+		if($scope.leagueAssetsById[franchiseId].players && $scope.leagueAssetsById[franchiseId].players.player){
+			$.each($scope.leagueAssetsById[franchiseId].players.player, function(index, player){
+				dynasty101TradeValue($rootScope.cache.mfl.players[player.id], $scope.leagueSettings).then(function(){
+					applyRootScope();
+				});
 			});
-		});
+		}
 	};
 
 	buildLeagueSelect = function(league, disabled){
 		var leagueOptions = "<option></option>";
 
-		$.each($scope.mflLeagues.leagues, function(key, value){
-			leagueOptions += "<option value='" + key + "'";
-			if(league && league.league_id == value.league_id){
+		$.each($scope.leagueByLeagueId, function(leagueId, leagueFromList){
+			leagueOptions += "<option value='" + leagueId + "'";
+			if(league && league.league_id == leagueFromList.league_id){
 				leagueOptions += " selected='selected'";
 			}
-			leagueOptions += ">" + value.name + "</option>";
+			leagueOptions += ">" + leagueFromList.name + "</option>";
 		});
 
 		$("#leagueSelect").empty().html(leagueOptions);
@@ -593,8 +625,8 @@ app.controller('DashboardController', function($scope, $routeParams, $location, 
 		$("#leagueSelect").change(function(event){
 			var leagueSelect = $("#leagueSelect").val();
 			spinnerOn();
-			if(leagueSelect && $scope.mflLeagues && $scope.mflLeagues.leagues && $scope.mflLeagues.leagues[leagueSelect]){
-				$scope.loadLeague($scope.mflLeagues.leagues[leagueSelect]);
+			if(leagueSelect && $scope.leagueByLeagueId && $scope.leagueByLeagueId[leagueSelect]){
+				$scope.loadLeague($scope.leagueByLeagueId[leagueSelect]);
 			}else{
 				loadNonLoggedInView();
 			}

@@ -19,17 +19,17 @@
 			</div>
 		</div>
 		<div class="col-md-2" ng-show="validMflCookies()">
-			<div class="padding-top-20 no-margin-top form-group">
-				<button class="btn width-100 text-left" ng-click="openModal($event, 'draft-order-modal')"><i class="fas fa-arrows-alt-v"></i> Draft Order</button>
-			</div>
-		</div>
-		<div class="col-md-2" ng-show="validMflCookies()">
 			<div class="no-margin-top form-group">
 				<label class="control-label" for="leagueSelect">League</label>
 				<div class="flex-import">
 					<select class="form-control" id="leagueSelect" data-placeholder="Select League">
 					</select>
 				</div>
+			</div>
+		</div>
+		<div class="col-md-2" ng-show="validMflCookies() && league">
+			<div class="padding-top-20 no-margin-top form-group">
+				<button class="btn width-100 text-left" ng-click="openModal($event, 'draft-order-modal')"><i class="fas fa-arrows-alt-v"></i> Draft Order</button>
 			</div>
 		</div>
 	</div>
