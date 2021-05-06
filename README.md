@@ -1,11 +1,10 @@
 # DynastyDashboard
 
-<details>
-  <summary>Access app</summary>
-<br>
+<hr>
+### Application URL
+```
 https://dynastydashboard.netlify.app/#/
-
-</details>
+```
 
 Pre installations:
 Install Grunt CLI: npm install -g grunt-cli
