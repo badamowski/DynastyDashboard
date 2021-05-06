@@ -2,7 +2,7 @@
 
 <details>
   <summary>Access app</summary>
-
+<br>
 https://dynastydashboard.netlify.app/#/
 
 </details>
