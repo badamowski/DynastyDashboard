@@ -1,30 +1,26 @@
 # DynastyDashboard
 
-<hr>
-### Application URL
-```
-https://dynastydashboard.netlify.app/#/
-```
+App URL: https://dynastydashboard.netlify.app/#/
 
-Pre installations:
+### Pre installations:
 Install Grunt CLI: npm install -g grunt-cli
 Install Netlify CLI: npm install netlify-cli -g
 npm install
 
-Run Locally:
+### Run Locally:
 grunt default
 netlify dev
 
 MFL Doc: https://www63.myfantasyleague.com/2020/api_info?STATE=test&CCAT=export&TYPE=players&L=24385
 
-BUGS:
+### BUGS:
 * Projected Scores when not logged in
 
-MAJOR FEATURES:
+### MAJOR FEATURES:
 * Draft
 * Lineup
 
-SMALL ENHANCEMENTS
+### SMALL ENHANCEMENTS
 * Encrypt Cookies and un-encrypt in function
 * Tagging of players with 1:many tags
 * More data
