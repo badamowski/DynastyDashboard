@@ -14,7 +14,7 @@ exports.handler = function(event, context, callback) {
 	  
       leagueQueryParams += "JSON=1";
 
-      var path = `/2020/export?${leagueQueryParams}`;
+      var path = `/2021/export?${leagueQueryParams}`;
 
       var hostname = "api.myfantasyleague.com";
       if(body.hostname){

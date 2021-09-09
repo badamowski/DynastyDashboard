@@ -9,7 +9,7 @@ exports.handler = function(event, context, callback) {
 
       var options = {
         hostname: "api.myfantasyleague.com",
-        path: `/2020/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
+        path: `/2021/login?USERNAME=${body.mflUsername}&PASSWORD=${body.mflPassword}&XML=1`,
         method: "POST",
         port: 443,
       };
